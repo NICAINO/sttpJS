@@ -1,42 +1,62 @@
 <script>
     import { grid } from './stores.js'
-
+    
     let grid_value;
+    let currentX;
+    let currentY;
+
     const unsubscribe = grid.subscribe(value => {
             grid_value = value;
         });
 
-    const fixHet = () => {
-        $grid[0][0][2] = "super relaxed neef"
+    const fixHet = (x,y) => {
+        $grid[y][x][$grid[y][x].length] = JSON.stringify($grid[y][x].length)
     }
     
-    $: console.log($grid)
+    $: console.log("Grid geupdate: ", $grid)
+    $: console.log('current: ', currentX, currentY)
 </script>
 
 
 <div class="grid">
-    {#each $grid as row}
+    {#each $grid as row, y}
         <div class="row">
-            {#each row as cell}
-                <div class="cell">
-                    {#each cell as block}
-                        <div class="blockDisplay">
-                            {block}
+            {#each row as cell, x}
+                <div on:click ={() => {
+                    currentX = x,
+                    currentY = y
+                    fixHet(x,y)
+                    }} 
+                    class="cell"
+                >
+                    <div class="stackDisplay">
+                        {#each cell as stack}
+                            <div>
+                                {stack}
+                            </div>
+                        {/each}
+                    </div>
+                    <div class="topStack">
+                        <div>
+                            {cell.slice(-1)}
                         </div>
-                    {/each}
+                    </div>
                 </div>
             {/each}
         </div>
     {/each}
 </div>
 
-<button on:click={() => fixHet()}>POG</button>
-
 <style>
+    div {
+        color: white;
+    }
+
     .grid {
         display: flex;
         box-sizing: border-box;
         flex-direction: column;
+        align-items: center;
     }
     
     .row {
@@ -51,11 +71,29 @@
         aspect-ratio: 1;
         border: solid black;
         border-width: 2px;
-        flex-direction: column-reverse
+        flex-direction: row
     }
 
-    .blockDisplay {
-        border: solid red;
+    .cell > * {
+        flex: 1 100%;
+    }
+
+    .stackDisplay {
+        display: flex;
+        flex-direction: column-reverse;
+        border: solid black;
         border-width: 1px;
+    }
+
+    .topStack {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .piece {
+        flex: 1;
+        color: black;
+        height: 2px;
     }
 </style>
