@@ -1,7 +1,7 @@
 <script>
     import { grid } from './stores.js'
     
-    let grid_value;
+    let grid_value = [];
     let currentX;
     let currentY;
 
@@ -10,7 +10,11 @@
         });
 
     const fixHet = (x,y) => {
-        $grid[y][x][$grid[y][x].length] = JSON.stringify($grid[y][x].length)
+        let vo = grid_value[y][x]
+        let color = 'red'
+        let new_vo = [...vo, {color}]
+        console.log('BAAAS', JSON.stringify(new_vo))
+        $grid[y][x] = new_vo
     }
     
     $: console.log("Grid geupdate: ", $grid)
@@ -31,9 +35,7 @@
                 >
                     <div class="stackDisplay">
                         {#each cell as stack}
-                            <div>
-                                {stack}
-                            </div>
+                            <div class="piece" style="background-color: {stack.color};"/>
                         {/each}
                     </div>
                     <div class="topStack">
@@ -49,7 +51,7 @@
 
 <style>
     div {
-        color: white;
+        color: black;
     }
 
     .grid {
@@ -92,8 +94,7 @@
     }
 
     .piece {
-        flex: 1;
-        color: black;
-        height: 2px;
+        width: 100%;
+        height: 5px;
     }
 </style>
