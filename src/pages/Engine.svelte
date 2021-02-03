@@ -33,7 +33,24 @@ import { set_attributes } from 'svelte/internal';
             grid_value = value;
         });
 
-    const placePiece = (x, y, type, color) => {
+    const placePiece = (selected, type) => {
+        pieceAction(selected.x, selected.y, type, currentPlayer.color)
+        endTurn()
+    }
+
+    const movePiece = (x,y) => {
+        let array = grid_value[selectedPiece.y][selectedPiece.x]
+        if ((array.length - selectedPiece.z) > 5) {
+            deselectPiece(selectedPiece.x, selectedPiece.y)
+        } else {
+            let items = array.splice(selectedPiece.z)
+            for (let i = 0; i < items.length; i++) {
+                pieceAction(x, y, items[i], items[i].color)
+            }
+        }
+    }
+
+    const pieceAction = (x, y, type, color) => {
         const piece = {
             type: type.type,
             color: color,
@@ -44,26 +61,35 @@ import { set_attributes } from 'svelte/internal';
             }
         }
         $grid[y][x] =  [...grid_value[y][x], piece]
-        };
+    }
 
     const selectSquare = (x,y) => {
         selected.x = x
         selected.y = y
 
-        if (selectedPiece.x !== x || selectedPiece.y !== y) {
-            let array = grid_value[selectedPiece.y][selectedPiece.x]
-            let items = array.splice(selectedPiece.z)
-            for (let i = 0; i < items.length; i++) {
-                placePiece(x, y, items[i], items[i].color)
+        if (selectedPiece.x !== null || selectedPiece.y !== null || selectedPiece.z !== null) {
+            if (selectedPiece.x !== x || selectedPiece.y !== y) {
+                movePiece(x,y)
+            } else {
+                console.log('Same cell')
             }
         } else {
-            console.log('Same cell')
+            console.log('No selected piece')
         }
-    };
+    }
 
-    const selectPiece = (location) => {
-        if (selectedPiece !== location) {
-            selectedPiece = location
+    const selectPiece = (piece,x,y) => {
+
+        if (selectedPiece !== piece.location) {
+            selectedPiece = piece.location
+        } else {
+            deselectPiece(x,y)
+        }
+    }
+
+    const deselectPiece = (x,y) => {
+        if (selectedPiece.x !== x || selectedPiece.y !== y) {
+            selectSquare(x,y)
         } else {
             selectedPiece = {
                 x: null,
@@ -72,16 +98,6 @@ import { set_attributes } from 'svelte/internal';
             }
         }
     }
-    
-    $: console.log("Grid geupdate: ", $grid)
-    $: console.log('SelectedPiece: ', selectedPiece)
-    $: console.log("currentPlayer: ", currentPlayer)
-    $: console.log(Wall)
-
-    const placeNewPiece = (selected, type) => {
-        placePiece(selected.x, selected.y, type, currentPlayer.color)
-        endTurn()
-    }
 
     const endTurn = () => {
         if (currentPlayer == players.player1) 
@@ -89,6 +105,11 @@ import { set_attributes } from 'svelte/internal';
         else 
             {currentPlayer = players.player1}
     }
+    
+    $: console.log("Grid geupdate: ", $grid)
+    $: console.log('SelectedPiece: ', selectedPiece)
+    $: console.log("currentPlayer: ", currentPlayer)
+    $: console.log(Wall)
 
 </script>
 
@@ -104,13 +125,13 @@ import { set_attributes } from 'svelte/internal';
                     >
                         {#if cell.length > 1}
                             <div class="stackDisplay">
-                                <div style="font-weight: bold;">
+                                <div on:click={() => {deselectPiece(x,y)}} style="font-weight: bold; height: 100%;">
                                     {cell.length}
                                 </div>
                                 <div class="stack">
                                     {#each cell as stack}
                                         <div 
-                                            on:click={() => {selectPiece(stack.location, x, y)}} 
+                                            on:click={() => {selectPiece(stack, x, y)}} 
                                             class={selectedPiece === stack.location ? "selected_" + stack.type : stack.type} 
                                             style="background-color: {stack.color};"
                                         />
@@ -121,7 +142,7 @@ import { set_attributes } from 'svelte/internal';
                         <div class="topStack">
                             {#if cell[cell.length-1]}
                                 <div 
-                                    on:click={() => {selectPiece(cell[cell.length-1].location, x, y)}}
+                                    on:click={() => {selectPiece(cell[cell.length-1], x, y)}}
                                     class={selectedPiece === cell[cell.length-1].location ? "selected_" + cell[cell.length-1].type : cell[cell.length-1].type} 
                                     style="background-color: {cell[cell.length-1].color};"/>
                             {/if}
@@ -131,8 +152,10 @@ import { set_attributes } from 'svelte/internal';
             </div>
         {/each}
     </div>
-
-    <button on:click={() => placeNewPiece(selected, Road)}>VO!</button>
+    <div style="display: flex; flex-direction: row;">
+        <button on:click={() => placePiece(selected, Road)}>VO!</button>
+        <button on:click={() => {endTurn()}}>Einde beurt</button>
+    </div>
 </body>
 
 <style>
