@@ -78,12 +78,15 @@ import { set_attributes } from 'svelte/internal';
         }
     }
 
-    const selectPiece = (piece,x,y) => {
-
-        if (selectedPiece !== piece.location) {
-            selectedPiece = piece.location
+    const selectPiece = (location,x,y,top) => {
+        if (top === currentPlayer.color) {
+            if (selectedPiece !== location) {
+                selectedPiece = location
+            } else {
+                deselectPiece(x,y)
+            }
         } else {
-            deselectPiece(x,y)
+            console.log('Not your stack')
         }
     }
 
@@ -108,8 +111,6 @@ import { set_attributes } from 'svelte/internal';
     
     $: console.log("Grid geupdate: ", $grid)
     $: console.log('SelectedPiece: ', selectedPiece)
-    $: console.log("currentPlayer: ", currentPlayer)
-    $: console.log(Wall)
 
 </script>
 
@@ -131,7 +132,7 @@ import { set_attributes } from 'svelte/internal';
                                 <div class="stack">
                                     {#each cell as stack}
                                         <div 
-                                            on:click={() => {selectPiece(stack, x, y)}} 
+                                            on:click={() => {selectPiece(stack.location, x, y, cell[cell.length-1].color)}} 
                                             class={selectedPiece === stack.location ? "selected_" + stack.type : stack.type} 
                                             style="background-color: {stack.color};"
                                         />
@@ -142,7 +143,7 @@ import { set_attributes } from 'svelte/internal';
                         <div class="topStack">
                             {#if cell[cell.length-1]}
                                 <div 
-                                    on:click={() => {selectPiece(cell[cell.length-1], x, y)}}
+                                    on:click={() => {selectPiece(cell[cell.length-1].location, x, y, cell[cell.length-1].color)}}
                                     class={selectedPiece === cell[cell.length-1].location ? "selected_" + cell[cell.length-1].type : cell[cell.length-1].type} 
                                     style="background-color: {cell[cell.length-1].color};"/>
                             {/if}
