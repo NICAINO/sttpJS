@@ -49,14 +49,31 @@ import { set_attributes } from 'svelte/internal';
     const selectSquare = (x,y) => {
         selected.x = x
         selected.y = y
-        };
+        console.log('locatie: ', x, y)
+
+        if (selectedPiece.x !== x || selectedPiece.y !== y) {
+            let item = grid_value[selectedPiece.y][selectedPiece.x].splice(selectedPiece.z, 1)
+            console.log("item", item[0])
+            placePiece(x, y, item, currentPlayer.color)
+        } else {
+            console.log('vo')
+        }
+    };
 
     const selectPiece = (location) => {
-        selectedPiece = location
+        if (selectedPiece !== location) {
+            selectedPiece = location
+        } else {
+            selectedPiece = {
+                x: null,
+                y: null,
+                z: null,
+            }
+        }
     }
     
     $: console.log("Grid geupdate: ", $grid)
-    $: console.log('Selected: ', selected.x, selected.y)
+    $: console.log('SelectedPiece: ', selectedPiece)
     $: console.log("currentPlayer: ", currentPlayer)
     $: console.log(Wall)
 
