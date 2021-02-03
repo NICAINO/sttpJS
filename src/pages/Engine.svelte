@@ -3,12 +3,18 @@
     import Wall  from '../../components/pieces/Wall'
     import Road  from '../../components/pieces/Road'
     import Pyramid  from '../../components/pieces/Pyramid'
+import { set_attributes } from 'svelte/internal';
     
     let grid_value = [];
     let selected = {
         x: 0,
         y: 0
         }
+    let selectedPiece = {
+        x: null,
+        y: null,
+        z: null,
+    }
     export let players = {
         player1: {
             name:"Gonnoegarfield",
@@ -31,9 +37,11 @@
         const piece = {
             type: type.type,
             color: color,
-            x: x,
-            y: y,
-            z: grid_value[y][x].length,
+            location: {
+                x: x,
+                y: y,
+                z: grid_value[y][x].length,
+            }
         }
         $grid[y][x] =  [...grid_value[y][x], piece]
         };
@@ -42,6 +50,10 @@
         selected.x = x
         selected.y = y
         };
+
+    const selectPiece = (location) => {
+        selectedPiece = location
+    }
     
     $: console.log("Grid geupdate: ", $grid)
     $: console.log('Selected: ', selected.x, selected.y)
@@ -59,44 +71,55 @@
 
 </script>
 
-
-<div class="grid">
-    {#each $grid as row, y}
-        <div class="row">
-            {#each row as cell, x}
-                <div on:click ={() => {
-                    selectSquare(x,y)
-                    }} 
-                    class="{selected.x === x && selected.y === y ? "selectedCell" : "cell"}"
-                >
-                    {#if cell.length > 1}
-                        <div class="stackDisplay">
-                            <div>
-                                {cell.length}
+<body>
+    <div class="grid">
+        {#each $grid as row, y}
+            <div class="row">
+                {#each row as cell, x}
+                    <div on:click ={() => {
+                        selectSquare(x,y)
+                        }} 
+                        class="{selected.x === x && selected.y === y ? "selectedCell" : "cell"}"
+                    >
+                        {#if cell.length > 1}
+                            <div class="stackDisplay">
+                                <div style="font-weight: bold;">
+                                    {cell.length}
+                                </div>
+                                <div class="stack">
+                                    {#each cell as stack}
+                                        <div 
+                                            on:click={() => {selectPiece(stack.location, x, y)}} 
+                                            class={selectedPiece === stack.location ? "selected_" + stack.type : stack.type} 
+                                            style="background-color: {stack.color};"
+                                        />
+                                    {/each}
+                                </div>
                             </div>
-                            <div class="stack">
-                                {#each cell as stack}
-                                    <div class={stack.type} style="background-color: {stack.color};"/>
-                                {/each}
-                            </div>
-                        </div>
-                    {/if}
-                    <div class="topStack">
-                        {#if cell[cell.length-1]}
-                            <div class={cell[cell.length-1].type} style="background-color: {cell[cell.length-1].color};"/>
                         {/if}
+                        <div class="topStack">
+                            {#if cell[cell.length-1]}
+                                <div class={cell[cell.length-1].type} style="background-color: {cell[cell.length-1].color};"/>
+                            {/if}
+                        </div>
                     </div>
-                </div>
-            {/each}
-        </div>
-    {/each}
-</div>
+                {/each}
+            </div>
+        {/each}
+    </div>
 
-<button on:click={() => turn(selected, players, Road)}>VO!</button>
+    <button on:click={() => turn(selected, players, Road)}>VO!</button>
+</body>
 
 <style>
     div {
         color: black;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .grid {
@@ -165,6 +188,25 @@
     }
 
     .pyramid {
+        width: 75%;
+        height: 25px;
+        border-top-right-radius: 25px;
+        border-top-left-radius: 25px;
+    }
+
+    .selected_wall {
+        width: 50%;
+        aspect-ratio: 1.25;
+    }
+
+    .selected_road {
+        width: 90%;
+        height: 10px;
+        border: solid black;
+        border-width: 2px;
+    }
+
+    .selected_pyramid {
         width: 75%;
         height: 25px;
         border-top-right-radius: 25px;

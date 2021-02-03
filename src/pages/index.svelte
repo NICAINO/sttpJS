@@ -7,7 +7,7 @@
     let activePlayer;
 </script>
 <body>
-    <div>
+    <div style="display: flex; align-items: center; flex-direction: column;">
         <div class="header">
             VOMB
         </div>
@@ -24,6 +24,7 @@
         </div>
     </div>
     <Engine bind:currentPlayer={activePlayer} bind:players={players}/>
+    <div/>
 
 </body>
 
@@ -33,7 +34,13 @@
     body {
         background-color: #fff;
         width: 100%;
-        height: 100000px;
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+    }
+
+    body > * {
+        flex: 1 100%;
     }
     
     .header {
