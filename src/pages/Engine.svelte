@@ -3,7 +3,6 @@
     import Wall  from '../../components/pieces/Wall'
     import Road  from '../../components/pieces/Road'
     import Pyramid  from '../../components/pieces/Pyramid'
-import { set_attributes } from 'svelte/internal';
     
     let grid_value = [];
     let selected = {
@@ -15,16 +14,17 @@ import { set_attributes } from 'svelte/internal';
         y: null,
         z: null,
     }
+    
     export let players = {
         player1: {
             name:"Gonnoegarfield",
             rating: "MEGAHOOG",
-            color: "yellow"
+            color: "#f8dfa1"
         },
         player2: {
             name: 'Pilsiam',
             rating: "nog nooit van nica gewonnen",
-            color: "green"
+            color: "#55342b"
         },
     }
     export let currentPlayer = players.player1
@@ -32,6 +32,15 @@ import { set_attributes } from 'svelte/internal';
     const unsubscribe = grid.subscribe(value => {
             grid_value = value;
         });
+
+    function handleKeydown(event) {
+		let key = event.key;
+        let keyCode = event.keyCode;
+        
+        if (keyCode === 32) {
+            placePiece(selected, Road)
+        }
+	}
 
     const placePiece = (selected, type) => {
         pieceAction(selected.x, selected.y, type, currentPlayer.color)
@@ -114,6 +123,8 @@ import { set_attributes } from 'svelte/internal';
 
 </script>
 
+<svelte:window on:keydown={handleKeydown}/>
+
 <body>
     <div class="grid">
         {#each $grid as row, y}
@@ -174,6 +185,8 @@ import { set_attributes } from 'svelte/internal';
         display: flex;
         flex-direction: column;
         align-items: center;
+        border-width: 2px;
+        border: solid #573a2e;
     }
     
     .row {
@@ -185,16 +198,17 @@ import { set_attributes } from 'svelte/internal';
         display: flex;
         width: 150px;
         aspect-ratio: 1;
-        border: solid black;
+        border: solid #573a2e;
         border-width: 2px;
         flex-direction: row;
+        background-color: #fccc74;
     }
 
     .selectedCell {
         display: flex;
         width: 150px;
         aspect-ratio: 1;
-        border: solid black;
+        border: solid #573a2e;
         border-width: 2px;
         flex-direction: row;
         background-color: #00ff0025; 
