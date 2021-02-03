@@ -78,9 +78,12 @@ import { set_attributes } from 'svelte/internal';
     $: console.log("currentPlayer: ", currentPlayer)
     $: console.log(Wall)
 
-    const turn = (selected, players, type) => {
+    const placeNewPiece = (selected, type) => {
         placePiece(selected.x, selected.y, type, currentPlayer.color)
+        endTurn()
+    }
 
+    const endTurn = () => {
         if (currentPlayer == players.player1) 
             {currentPlayer = players.player2}
         else 
@@ -117,7 +120,10 @@ import { set_attributes } from 'svelte/internal';
                         {/if}
                         <div class="topStack">
                             {#if cell[cell.length-1]}
-                                <div class={cell[cell.length-1].type} style="background-color: {cell[cell.length-1].color};"/>
+                                <div 
+                                    on:click={() => {selectPiece(cell[cell.length-1].location, x, y)}}
+                                    class={selectedPiece === cell[cell.length-1].location ? "selected_" + cell[cell.length-1].type : cell[cell.length-1].type} 
+                                    style="background-color: {cell[cell.length-1].color};"/>
                             {/if}
                         </div>
                     </div>
@@ -126,7 +132,7 @@ import { set_attributes } from 'svelte/internal';
         {/each}
     </div>
 
-    <button on:click={() => turn(selected, players, Road)}>VO!</button>
+    <button on:click={() => placeNewPiece(selected, Road)}>VO!</button>
 </body>
 
 <style>
