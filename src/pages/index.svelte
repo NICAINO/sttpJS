@@ -24,7 +24,12 @@
         </div>
     </div>
     <Engine bind:currentPlayer={activePlayer} bind:players={players}/>
-    <div/>
+    <div style="display: flex; align-items: center; flex-direction: column;">
+        {#if activePlayer}
+            <h3>Stukken </h3>
+            <p>{activePlayer.name}: {activePlayer.pieces} stukken</p>            
+        {/if}
+    </div>
 
 </body>
 

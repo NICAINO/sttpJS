@@ -23,12 +23,14 @@
         player1: {
             name:"Gonnoegarfield",
             rating: "MEGAHOOG",
-            color: "#f8dfa1"
+            color: "#f8dfa1",
+            pieces: 21
         },
         player2: {
             name: 'Pilsiam',
             rating: "nog nooit van nica gewonnen",
-            color: "#55342b"
+            color: "#55342b",
+            pieces: 21
         },
     }
 
@@ -64,26 +66,39 @@
     }
 
     const placePiece = (selected, type) => {
-        let succes = pieceAction(selected.x, selected.y, type, currentPlayer.color)
-        if (!succes) {
-            endTurn()
+        if (currentPlayer.pieces > 0) {
+            let topDestinyCell = grid_value[selected.y][selected.x].slice(-1)
+            if (topDestinyCell[0] && topDestinyCell[0].type === 'wall') {
+                console.log("Wall")
+            } else {
+                let succes = pieceAction(selected.x, selected.y, type, currentPlayer.color)
+                if (!succes) {
+                    deductPiece()
+                    endTurn()
+                } else {
+                    console.log('Still your turn')
+                }
+            }
         } else {
-            console.log('Still your turn')
-        }
-        
+            console.log("No pieces")
+        }      
     }
 
     const movePiece = (x,y) => {
         let array = grid_value[selectedPiece.y][selectedPiece.x]
+        let topDestinyCell = grid_value[y][x].slice(-1)
         if ((array.length - selectedPiece.z) > 5) {
-            deselectPiece(selectedPiece.x, selectedPiece.y)
+            console.log('Stack to high')
+        } else if (topDestinyCell && topDestinyCell[0].type === 'wall') {
+            console.log("Wall")
         } else {
             let items = array.splice(selectedPiece.z)
             for (let i = 0; i < items.length; i++) {
                 pieceAction(x, y, items[i], items[i].color)
             }
-            deselectPiece(selectedPiece.x, selectedPiece.y)
+            
         }
+        deselectPiece(selectedPiece.x, selectedPiece.y)
     }
 
     const pieceAction = (x, y, type, color) => {
@@ -145,6 +160,10 @@
         }
     }
 
+    const deductPiece = () => {
+        currentPlayer.pieces = currentPlayer.pieces-1
+    }
+
     const endTurn = () => {
         if (currentPlayer == players.player1) 
             {currentPlayer = players.player2}
@@ -199,7 +218,8 @@
         {/each}
     </div>
     <div style="display: flex; flex-direction: row;">
-        <button on:click={() => placePiece(selected, Road)}>VO!</button>
+        <button on:click={() => placePiece(selected, Road)}>Weg</button>
+        <button on:click={() => placePiece(selected, Wall)}>Muur</button>
         <button on:click={() => {endTurn()}}>Einde beurt</button>
     </div>
 </body>
