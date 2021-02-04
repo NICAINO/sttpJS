@@ -14,6 +14,10 @@
         y: null,
         z: null,
     }
+
+    let possibleCells = []
+
+    export const maxHeigth = 10
     
     export let players = {
         player1: {
@@ -27,6 +31,7 @@
             color: "#55342b"
         },
     }
+
     export let currentPlayer = players.player1
 
     const unsubscribe = grid.subscribe(value => {
@@ -40,11 +45,32 @@
         if (keyCode === 32) {
             placePiece(selected, Road)
         }
-	}
+    }
+    
+    const checkPossibleCells = (x,y) => {
+        let array = grid_value[selectedPiece.y][selectedPiece.x]
+        let height = array.length - selectedPiece.z
+        if (height > 5) {
+            deselectPiece(selectedPiece.x, selectedPiece.y)
+        } else {
+            for (let i = 1; i < (height+1); i++) {
+                let possibleLeft = x - i
+                let possibleRight = x + i
+                let possibleDown = y + i
+                let possibleUp = y - i
+                possibleCells.push({possibleLeft, y}, {possibleUp, x}, {possibleRight, y}, {possibleDown, x})
+            }
+        }
+    }
 
     const placePiece = (selected, type) => {
-        pieceAction(selected.x, selected.y, type, currentPlayer.color)
-        endTurn()
+        let succes = pieceAction(selected.x, selected.y, type, currentPlayer.color)
+        if (!succes) {
+            endTurn()
+        } else {
+            console.log('Still your turn')
+        }
+        
     }
 
     const movePiece = (x,y) => {
@@ -56,20 +82,26 @@
             for (let i = 0; i < items.length; i++) {
                 pieceAction(x, y, items[i], items[i].color)
             }
+            deselectPiece(selectedPiece.x, selectedPiece.y)
         }
     }
 
     const pieceAction = (x, y, type, color) => {
-        const piece = {
-            type: type.type,
-            color: color,
-            location: {
-                x: x,
-                y: y,
-                z: grid_value[y][x].length,
+        if (grid_value[y][x].length < maxHeigth) {
+            const piece = {
+                type: type.type,
+                color: color,
+                location: {
+                    x: x,
+                    y: y,
+                    z: grid_value[y][x].length,
+                }
             }
+            $grid[y][x] =  [...grid_value[y][x], piece]
+        } else {
+            console.log('Too high')
+            return true
         }
-        $grid[y][x] =  [...grid_value[y][x], piece]
     }
 
     const selectSquare = (x,y) => {
@@ -91,6 +123,7 @@
         if (top === currentPlayer.color) {
             if (selectedPiece !== location) {
                 selectedPiece = location
+                checkPossibleCells(location.x, location.y)
             } else {
                 deselectPiece(x,y)
             }
@@ -108,6 +141,7 @@
                 y: null,
                 z: null,
             }
+            possibleCells = []
         }
     }
 
