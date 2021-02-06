@@ -98,7 +98,11 @@
                         console.log('No movement possible')
                     }
                 } else if (movingStack.length > 0) {
-                    movement(x, y, movingStack)
+                    if (isMovePossible(x, y)) {
+                        movement(x, y, movingStack)
+                    } else {
+                        console.log('Move is not possible')
+                    }
                 } else {
                     console.log('No piece selected')
                 }
@@ -132,16 +136,17 @@
         console.log('Direction: ', direction)
     }
 
-    const movement = (x, y, movingStack) => {
+    const movement = async(x, y, movingStack) => {
         pieceAction(x, y, movingStack[0], movingStack[0])
         movingStack.splice(0, 1)
-        updatePossibleCells(x, y)
+        await updatePossibleCells(x, y)
+        checkPlaceableCells(x, y)
         if (movingStack.length === 0) {
             endTurn()
         }
     }
 
-    $: updatePossibleCells = (x, y) => {
+    const updatePossibleCells = (x, y) => {
         possibleCells = []
         let height = movingStack.length
         if (direction === 'up') {
