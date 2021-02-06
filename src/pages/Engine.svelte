@@ -85,7 +85,7 @@
             if(selectCell(x, y)) {
                 // Als er een piece is geselect dan true anders false
                 if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null ) {
-                    if (isReachPossible(x, y)) {
+                    if (isMovePossible(x, y, movingStack)) {
                         let array = grid_value[selectedPiece.y][selectedPiece.x]
                         movingStack = array.splice(selectedPiece.z)
                         deselectPiece()
@@ -204,7 +204,14 @@
     }
 
     const isMovePossible = () => {
-
+        let difference = Math.abs(selectedPiece.x - selected.x) + Math.abs(selectedPiece.y - selected.y)
+        console.log('Difference: ', difference)
+        if (difference === 0) {
+            return true
+        } else {
+            return false
+        }
+        
     }
 
     //Dit is zeg maar dat er een nieuwe piece wordt geplaatst
