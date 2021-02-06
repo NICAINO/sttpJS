@@ -1,6 +1,7 @@
+import { beforeUpdate } from 'svelte';
 import { writable } from 'svelte/store';
 
-export const grid = writable(
+export let grid = writable(
     [
         //0  1  2  3  4
         [[],[],[],[],[]], //A
@@ -10,3 +11,7 @@ export const grid = writable(
         [[],[],[],[],[]], //E
     ]
 );
+
+export const log = writable( 
+    []
+)
