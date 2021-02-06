@@ -17,6 +17,7 @@
     }
 
     let possibleCells = []
+    let placeableCells = []
 
     let direction;
 
@@ -74,7 +75,8 @@
                     console.log('Stack too high')
                 } else {
                     // Wordt als de stack verplaatsbaar is (dus aan alle voorwaarden voldoet)
-                    checkPossibleCells(x,y) 
+                    checkPossibleCells(x, y) 
+                    checkPlaceableCells(x, y)
                 } 
             } else {
                 // wordt uitgevoerd als de piece niet van jou is
@@ -85,7 +87,7 @@
             if(selectCell(x, y)) {
                 // Als er een piece is geselect dan true anders false
                 if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null ) {
-                    if (isMovePossible(x, y, movingStack)) {
+                    if (isMovePossible(x, y)) {
                         let array = grid_value[selectedPiece.y][selectedPiece.x]
                         movingStack = array.splice(selectedPiece.z)
                         deselectPiece()
@@ -203,15 +205,30 @@
         return false
     }
 
-    const isMovePossible = () => {
-        let difference = Math.abs(selectedPiece.x - selected.x) + Math.abs(selectedPiece.y - selected.y)
-        console.log('Difference: ', difference)
-        if (difference === 0) {
-            return true
-        } else {
-            return false
+    const checkPlaceableCells = (x, y) => {
+        placeableCells = []
+        for (let i = 1; i < possibleCells.length + 1; i++) {
+            let difference = Math.abs(selectedPiece.x - possibleCells[i].x) + Math.abs(selectedPiece.y - possibleCells[i].y)
+            if (difference === 1) {
+                placeableCells.push(
+                {x: x - i, y: y}, 
+                {x: x, y: y - i}, 
+                {x: x + i, y: y}, 
+                {x: x, y: y + i}
+                )
+                break
+            }
+        }  
+    }
+
+    const isMovePossible = (x, y) => {
+        for (let i = 0; i < placeableCells.length; i++) {    
+            if (placeableCells[i].x == x && placeableCells[i].y == y) {
+                console.log('true')
+                return true
+            }
         }
-        
+        return false
     }
 
     //Dit is zeg maar dat er een nieuwe piece wordt geplaatst
