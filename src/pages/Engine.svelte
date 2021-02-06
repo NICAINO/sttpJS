@@ -87,7 +87,7 @@
             if(selectCell(x, y)) {
                 // Als er een piece is geselect dan true anders false
                 if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null ) {
-                    if (isMovePossible(x, y)) {
+                    if (isMovePossible(x, y) && isReachPossible(x, y)) {
                         let array = grid_value[selectedPiece.y][selectedPiece.x]
                         movingStack = array.splice(selectedPiece.z)
                         deselectPiece()
@@ -98,7 +98,7 @@
                         console.log('No movement possible')
                     }
                 } else if (movingStack.length > 0) {
-                    if (isMovePossible(x, y)) {
+                    if (isMovePossible(x, y) && isReachPossible(x, y)) {
                         movement(x, y, movingStack)
                     } else {
                         console.log('Move is not possible')
@@ -107,7 +107,11 @@
                     console.log('No piece selected')
                 }
             } else if (movingStack.length > 0) {
+                if(isMovePossible(x, y) && isReachPossible(x, y)) {
                     movement(x, y, movingStack)
+                } else {
+                    console.log('Move is not possible')
+                }
             } else {
                 console.log('Same cell')
             }
@@ -139,15 +143,16 @@
     const movement = async(x, y, movingStack) => {
         pieceAction(x, y, movingStack[0], movingStack[0])
         movingStack.splice(0, 1)
-        await updatePossibleCells(x, y)
-        checkPlaceableCells(x, y)
         if (movingStack.length === 0) {
             endTurn()
         }
+        await updatePossibleCells(x, y)
+        updatePlaceableCells(x, y)
     }
 
     const updatePossibleCells = (x, y) => {
         possibleCells = []
+        possibleCells.push({x: x, y: y})
         let height = movingStack.length
         if (direction === 'up') {
             for (let i = 1; i < (height+1); i++) {
@@ -203,16 +208,33 @@
         // console.log(possibleCells, possibleCells.length)
         for (let i = 0; i < possibleCells.length; i++) {    
             if (possibleCells[i].x == x && possibleCells[i].y == y) {
-                console.log('true')
                 return true
             }
         }
         return false
     }
 
+    const updatePlaceableCells = (x, y) => {
+        placeableCells = []
+        for (let i = 1; i < (possibleCells.length + 1); i++) {
+            let difference = Math.abs(selected.x - possibleCells[i-1].x) + Math.abs(selected.y - possibleCells[i-1].y)
+            if (difference === 1) {
+                placeableCells.push(
+                    {x: x, y: y},
+                    {x: x - i, y: y}, 
+                    {x: x, y: y - i}, 
+                    {x: x + i, y: y}, 
+                    {x: x, y: y + i}
+                )
+                break
+            }
+        }
+        console.log('PC', placeableCells)
+    }
+
     const checkPlaceableCells = (x, y) => {
         placeableCells = []
-        for (let i = 1; i < possibleCells.length + 1; i++) {
+        for (let i = 1; i < (possibleCells.length + 1); i++) {
             let difference = Math.abs(selectedPiece.x - possibleCells[i].x) + Math.abs(selectedPiece.y - possibleCells[i].y)
             if (difference === 1) {
                 placeableCells.push(
@@ -223,13 +245,13 @@
                 )
                 break
             }
-        }  
+        }
+        console.log('PC', placeableCells)
     }
 
     const isMovePossible = (x, y) => {
         for (let i = 0; i < placeableCells.length; i++) {    
             if (placeableCells[i].x == x && placeableCells[i].y == y) {
-                console.log('true')
                 return true
             }
         }
