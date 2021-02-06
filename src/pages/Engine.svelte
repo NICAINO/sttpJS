@@ -18,6 +18,8 @@
 
     let possibleCells = []
 
+    let direction;
+
     $: movingStack = []
 
     export const maxHeigth = 10
@@ -83,10 +85,11 @@
             if(selectCell(x, y)) {
                 // Als er een piece is geselect dan true anders false
                 if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null ) {
-                    if (isMovePossible(x, y)) {
+                    if (isReachPossible(x, y)) {
                         let array = grid_value[selectedPiece.y][selectedPiece.x]
                         movingStack = array.splice(selectedPiece.z)
                         deselectPiece()
+                        determineDirection(x, y, movingStack)
                         movement(x, y, movingStack)
                         
                     } else {
@@ -110,18 +113,54 @@
         }
     }
 
-    const movement = (x, y, movingStack) => {
+    const determineDirection = (x, y, movingStack) => {
         let deltaX = movingStack[0].location.x - x
         let deltaY = movingStack[0].location.y - y
+        if (deltaX === 1) {
+            direction = 'left'
+        } else if (deltaX === -1) {
+            direction = 'right'
+        } else if (deltaY === 1) {
+            direction = 'up'
+        } else if (deltaY === -1) {
+            direction = 'down'
+        } else {
+            console.log('Something went wrong')
+        }
+        console.log('Direction: ', direction)
+    }
+
+    const movement = (x, y, movingStack) => {
         pieceAction(x, y, movingStack[0], movingStack[0])
         movingStack.splice(0, 1)
+        updatePossibleCells(x, y)
         if (movingStack.length === 0) {
             endTurn()
         }
     }
 
-    const updatePossibleCells = (deltaX, deltaY, height) => {
-
+    $: updatePossibleCells = (x, y) => {
+        possibleCells = []
+        let height = movingStack.length
+        if (direction === 'up') {
+            for (let i = 1; i < (height+1); i++) {
+                possibleCells.push({x: x, y: y - i})
+            }
+        } else if (direction === 'down') {
+            for (let i = 1; i < (height+1); i++) {
+                possibleCells.push({x: x, y: y + i})
+            }
+        } else if (direction === 'left') {
+            for (let i = 1; i < (height+1); i++) {
+                possibleCells.push({x: x - i, y: y})
+            }
+        } else if (direction === 'right') {
+            for (let i = 1; i < (height+1); i++) {
+                possibleCells.push({x: x + i, y: y})
+            }
+        } else {
+            console.log('Something went wrong')
+        }
     }
 
     const selectCell = (x, y) => {
@@ -145,15 +184,15 @@
         let height = array.length - selectedPiece.z
         for (let i = 1; i < (height+1); i++) {
             possibleCells.push(
-                {x: x - i, y:  y}, 
+                {x: x - i, y: y}, 
                 {x: x, y: y - i}, 
                 {x: x + i, y: y}, 
-                {x: x,y: y + i}
+                {x: x, y: y + i}
             )
         }
     }
 
-    const isMovePossible = (x, y) => {
+    const isReachPossible = (x, y) => {
         // console.log(possibleCells, possibleCells.length)
         for (let i = 0; i < possibleCells.length; i++) {    
             if (possibleCells[i].x == x && possibleCells[i].y == y) {
@@ -162,6 +201,10 @@
             }
         }
         return false
+    }
+
+    const isMovePossible = () => {
+
     }
 
     //Dit is zeg maar dat er een nieuwe piece wordt geplaatst
@@ -271,7 +314,7 @@
         {#each $grid as row, y}
             <div class="row">
                 {#each row as cell, x}
-                    <div class="{selected.x === x && selected.y === y ? "selectedCell"  : (possibleCells && isMovePossible(x,y)) ? "possibleCell" : "cell"}">
+                    <div class="{selected.x === x && selected.y === y ? "selectedCell"  : (possibleCells && isReachPossible(x,y)) ? "possibleCell" : "cell"}">
                         {#if cell.length > 1}
                             <div class="stackDisplay">
                                 <div on:click={() => {onClick('cell', x, y)}} 
