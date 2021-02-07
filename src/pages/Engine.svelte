@@ -21,7 +21,7 @@
 
     let direction;
 
-    $: movingStack = []
+    let movingStack = []
 
     export const maxHeigth = 10
     
@@ -263,7 +263,7 @@
             } else {
                 //Geen wall dan voert ie deze shit uit
                 let succes = pieceAction(selected.x, selected.y, type, currentPlayer)
-                if (!succes) {
+                if (succes) {
                     //Als ie een piece heeft kunnen plaatsen dan heeft de speler een peice minder 
                     deductPiece()
                     //En is zn beurt voorbij
@@ -291,9 +291,10 @@
                 }
             }
             $grid[y][x] =  [...grid_value[y][x], piece]
+            return true
         } else {
             console.log('Too high')
-            return true
+            return false
         }
     }
 
@@ -339,16 +340,16 @@
             {currentPlayer = players.player2}
         else 
             {currentPlayer = players.player1}
-        $log.push(grid_value)
+        $log = [...log_value, grid_value]
         console.log("log update ", log_value)
         possibleCells = []
     }
 
-    const goBack = (i) => {
-        $grid = log_value[log_value.length-i]
+    const goBack = () => {
+        $grid = log_value[log_value.length-1]
     }
     
-    //$: console.log('SelectedPiece: ', selectedPiece)
+    $: console.log('Grid: ', log_value)
 
 </script>
 
@@ -403,7 +404,7 @@
         <button on:click={() => placePiece(selected, Road)}>Weg</button>
         <button on:click={() => placePiece(selected, Wall)}>Muur</button>
         <button on:click={() => {endTurn()}}>Einde beurt</button>
-        <button on:click={() => goBack(1)}>Undo</button>
+        <button on:click={() => goBack()}>Undo</button>
     </div>
 </body>
 
