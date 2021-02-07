@@ -140,39 +140,14 @@
         console.log('Direction: ', direction)
     }
 
-    const movement = async(x, y, movingStack) => {
+    const movement = (x, y, movingStack) => {
         pieceAction(x, y, movingStack[0], movingStack[0])
         movingStack.splice(0, 1)
         if (movingStack.length === 0) {
             endTurn()
         }
-        await updatePossibleCells(x, y)
+        updatePossibleCells(x, y)
         updatePlaceableCells(x, y)
-    }
-
-    const updatePossibleCells = (x, y) => {
-        possibleCells = []
-        possibleCells.push({x: x, y: y})
-        let height = movingStack.length
-        if (direction === 'up') {
-            for (let i = 1; i < (height+1); i++) {
-                possibleCells.push({x: x, y: y - i})
-            }
-        } else if (direction === 'down') {
-            for (let i = 1; i < (height+1); i++) {
-                possibleCells.push({x: x, y: y + i})
-            }
-        } else if (direction === 'left') {
-            for (let i = 1; i < (height+1); i++) {
-                possibleCells.push({x: x - i, y: y})
-            }
-        } else if (direction === 'right') {
-            for (let i = 1; i < (height+1); i++) {
-                possibleCells.push({x: x + i, y: y})
-            }
-        } else {
-            console.log('Something went wrong')
-        }
     }
 
     const selectCell = (x, y) => {
@@ -202,6 +177,32 @@
                 {x: x, y: y + i}
             )
         }
+        console.log('Possible cells: ', possibleCells)
+    }
+
+    const updatePossibleCells = (x, y) => {
+        possibleCells = []
+        possibleCells.push({x: x, y: y})
+        let height = movingStack.length
+        if (direction === 'up') {
+            for (let i = 1; i < (height+1); i++) {
+                possibleCells.push({x: x, y: y - i})
+            }
+        } else if (direction === 'down') {
+            for (let i = 1; i < (height+1); i++) {
+                possibleCells.push({x: x, y: y + i})
+            }
+        } else if (direction === 'left') {
+            for (let i = 1; i < (height+1); i++) {
+                possibleCells.push({x: x - i, y: y})
+            }
+        } else if (direction === 'right') {
+            for (let i = 1; i < (height+1); i++) {
+                possibleCells.push({x: x + i, y: y})
+            }
+        } else {
+            console.log('Something went wrong')
+        }
     }
 
     const isReachPossible = (x, y) => {
@@ -211,42 +212,34 @@
                 return true
             }
         }
+        console.log('Reach is objected')
         return false
-    }
-
-    const updatePlaceableCells = (x, y) => {
-        placeableCells = []
-        for (let i = 1; i < (possibleCells.length + 1); i++) {
-            let difference = Math.abs(selected.x - possibleCells[i-1].x) + Math.abs(selected.y - possibleCells[i-1].y)
-            if (difference === 1) {
-                placeableCells.push(
-                    {x: x, y: y},
-                    {x: x - i, y: y}, 
-                    {x: x, y: y - i}, 
-                    {x: x + i, y: y}, 
-                    {x: x, y: y + i}
-                )
-                break
-            }
-        }
-        console.log('PC', placeableCells)
     }
 
     const checkPlaceableCells = (x, y) => {
         placeableCells = []
-        for (let i = 1; i < (possibleCells.length + 1); i++) {
-            let difference = Math.abs(selectedPiece.x - possibleCells[i].x) + Math.abs(selectedPiece.y - possibleCells[i].y)
-            if (difference === 1) {
-                placeableCells.push(
-                {x: x - i, y: y}, 
-                {x: x, y: y - i}, 
-                {x: x + i, y: y}, 
-                {x: x, y: y + i}
-                )
-                break
-            }
+        placeableCells.push(
+            {x: x - 1, y: y}, 
+            {x: x, y: y - 1}, 
+            {x: x + 1, y: y}, 
+            {x: x, y: y + 1}
+        )
+    }
+
+    const updatePlaceableCells = (x, y) => {
+        placeableCells = []
+        placeableCells.push({x: x, y: y})
+        if (direction === 'up') {
+            placeableCells.push({x: x, y: y - 1})
+        } else if (direction === 'down') {
+            placeableCells.push({x: x, y: y + 1})
+        } else if (direction === 'left') {
+            placeableCells.push({x: x - 1, y: y})
+        } else if (direction === 'right') {
+            placeableCells.push({x: x + 1, y: y})    
+        } else {
+            console.log('Something went wrong')
         }
-        console.log('PC', placeableCells)
     }
 
     const isMovePossible = (x, y) => {
@@ -255,6 +248,7 @@
                 return true
             }
         }
+        console.log('Move is objected', x, y)
         return false
     }
 
