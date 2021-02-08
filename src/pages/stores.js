@@ -12,6 +12,4 @@ export let grid = writable(
     ]
 );
 
-export const log = writable( 
-    []
-)
+export const log = writable([])

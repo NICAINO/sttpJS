@@ -4,6 +4,7 @@
     import Road  from '../../components/pieces/Road'
     import Pyramid  from '../../components/pieces/Pyramid'
     
+    let round = 0;
     let grid_value = [];
     let log_value = [];
     let selected = {
@@ -18,6 +19,7 @@
 
     let possibleCells = []
     let placeableCells = []
+    let localLog = []
 
     let direction;
 
@@ -27,7 +29,7 @@
     
     export let players = {
         player1: {
-            name:"Gonnoegarfield",
+            name:"Gonnoe Garfield",
             rating: "MEGAHOOG",
             color: "#f8dfa1",
             pieces: 21
@@ -80,11 +82,12 @@
                 } 
             } else {
                 // wordt uitgevoerd als de piece niet van jou is
-                console.log('Still your turn')
+                onClick('cell', x, y, true)
+
             }
         } else if (clickedOn === 'cell') {
             // Select cell en zet andere info op nul
-            if(selectCell(x, y)) {
+            if(selectCell(x, y, piece)) {
                 // Als er een piece is geselect dan true anders false
                 if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null ) {
                     if (isMovePossible(x, y) && isReachPossible(x, y)) {
@@ -143,21 +146,29 @@
     const movement = (x, y, movingStack) => {
         pieceAction(x, y, movingStack[0], movingStack[0])
         movingStack.splice(0, 1)
+        updatePossibleCells(x, y)
+        updatePlaceableCells(x, y)
+        if (placeableCells.length === 1) {
+            console.log('1 possible move')
+            for (let i = 0; i < movingStack.length; i++) {
+                pieceAction(x, y, movingStack[i], movingStack[i])
+            }
+            movingStack = []
+        }
         if (movingStack.length === 0) {
             endTurn()
         }
-        updatePossibleCells(x, y)
-        updatePlaceableCells(x, y)
     }
 
-    const selectCell = (x, y) => {
-        if (selectedPiece.x == x && selectedPiece.y == y) {
-            deselectPiece(x, y)
-            possibleCells = []
-        } 
-        if (selected.x == x && selected.y == y) {
+    const selectCell = (x, y, bypass) => {
+        if (bypass == true) {
+            return true
+        } else if (selected.x == x && selected.y == y) {
             return false
         } else {
+            if (selectedPiece.x == x && selectedPiece.y == y) {
+                deselectPiece()
+            } 
             selected.x = x
             selected.y = y
             return true
@@ -177,7 +188,6 @@
                 {x: x, y: y + i}
             )
         }
-        console.log('Possible cells: ', possibleCells)
     }
 
     const updatePossibleCells = (x, y) => {
@@ -212,31 +222,75 @@
                 return true
             }
         }
-        console.log('Reach is objected')
         return false
+    }
+
+    const checkPlaceability = (x, y) => {
+        if (x >= 0 && x < 5 && y >= 0 && y < 5) {
+            let array = grid_value[y][x]
+            if (array !== undefined) {
+                if (array.length !== 0) {
+                    if (array.length !== 10) {
+                        if (array[array.length - 1].type === 'wall' || array[array.length - 1].type === 'pyramid') {
+                            return false
+                        } else return true
+                    } else return false
+                } else return true
+            } else return false
+        } else return false
     }
 
     const checkPlaceableCells = (x, y) => {
         placeableCells = []
-        placeableCells.push(
-            {x: x - 1, y: y}, 
-            {x: x, y: y - 1}, 
-            {x: x + 1, y: y}, 
-            {x: x, y: y + 1}
-        )
+        if (checkPlaceability(x - 1, y)) {
+            placeableCells.push(
+                {x: x - 1, y: y}
+            )
+        }
+        if (checkPlaceability(x + 1, y)) {
+            placeableCells.push(
+                {x: x + 1, y: y}
+            )
+        }
+        if (checkPlaceability(x, y - 1)) {
+            placeableCells.push(
+                {x: x, y: y - 1}
+            )
+        }
+        if (checkPlaceability(x, y + 1)) {
+            placeableCells.push(
+                {x: x, y: y + 1}
+            )
+        }
     }
 
     const updatePlaceableCells = (x, y) => {
         placeableCells = []
         placeableCells.push({x: x, y: y})
         if (direction === 'up') {
-            placeableCells.push({x: x, y: y - 1})
+            if (checkPlaceability(x, y - 1)) {
+                placeableCells.push(
+                    {x: x, y: y - 1}
+                )
+            }
         } else if (direction === 'down') {
-            placeableCells.push({x: x, y: y + 1})
+            if (checkPlaceability(x, y + 1)) {
+                placeableCells.push(
+                    {x: x, y: y + 1}
+                )
+            }
         } else if (direction === 'left') {
-            placeableCells.push({x: x - 1, y: y})
+            if (checkPlaceability(x - 1, y)) {
+                placeableCells.push(
+                    {x: x - 1, y: y}
+                )
+            }
         } else if (direction === 'right') {
-            placeableCells.push({x: x + 1, y: y})    
+            if (checkPlaceability(x + 1, y)) {
+                placeableCells.push(
+                    {x: x + 1, y: y}
+                )
+            }   
         } else {
             console.log('Something went wrong')
         }
@@ -248,33 +302,33 @@
                 return true
             }
         }
-        console.log('Move is objected', x, y)
         return false
     }
 
     //Dit is zeg maar dat er een nieuwe piece wordt geplaatst
     const placePiece = (selected, type) => {
         //Eerst checken of de speler nog pieces heeft
-        if (currentPlayer.pieces > 0) {
-            let topDestinyCell = grid_value[selected.y][selected.x].slice(-1)
-            // Dan of de bovenste een wall is. Mss dit in een aparte functie plaats laten vinden
-            if (topDestinyCell[0] && topDestinyCell[0].type === 'wall') {
-                console.log("Wall")
-            } else {
-                //Geen wall dan voert ie deze shit uit
-                let succes = pieceAction(selected.x, selected.y, type, currentPlayer)
-                if (succes) {
-                    //Als ie een piece heeft kunnen plaatsen dan heeft de speler een peice minder 
-                    deductPiece()
-                    //En is zn beurt voorbij
-                    endTurn()
+        if (movingStack.length === 0) {
+            if (currentPlayer.pieces > 0) {
+                if (grid_value[selected.y][selected.x].length === 0) {
+                    let succes = pieceAction(selected.x, selected.y, type, currentPlayer)
+                    if (succes) {
+                        //Als ie een piece heeft kunnen plaatsen dan heeft de speler een peice minder 
+                        deductPiece()
+                        //En is zn beurt voorbij
+                        endTurn()
+                    } else {
+                        console.log('Still your turn')
+                    }
                 } else {
-                    console.log('Still your turn')
+                    console.log('Place your piece on an empty cell')
                 }
+            } else {
+                console.log("No pieces")
             }
         } else {
-            console.log("No pieces")
-        }      
+            console.log('You are moving')
+        }         
     }
 
     //Deze functie 'plaatst' de piece echt, mr gebruik ik ook om stacks te reassignen als het ware
@@ -304,14 +358,12 @@
         if (top.color === currentPlayer.color) {
             //Checken of de peice niet al is de geselecteerd
             if (selectedPiece !== piece.location) {
-                // Possible cells wordt leeggehaald
-                possibleCells = []
                 //Piece wordt gemarkeerd als selectedPiece
                 selectedPiece = piece.location
                 //Als de piece al was geselecteerd dan nu niet meer
                 return true
             } else {
-                deselectPiece(x,y)
+                deselectPiece()
                 return false
             }
         } else {
@@ -327,6 +379,10 @@
             y: null,
             z: null,
         }
+        if (movingStack.length === 0) {
+            possibleCells = []
+            placeableCells = []
+        }
     }
 
     //Is gwn dat er een piece wordt afgetrokken van het aantal pieces dat een speler heeft
@@ -340,16 +396,21 @@
             {currentPlayer = players.player2}
         else 
             {currentPlayer = players.player1}
-        $log = [...log_value, grid_value]
-        console.log("log update ", log_value)
+        updateLog($grid)
+        round += 1
         possibleCells = []
+        placeableCells = []
     }
 
-    const goBack = () => {
-        $grid = log_value[log_value.length-1]
+    const undo = () => {
+        console.log(round)
+        console.log(JSON.parse(log_value[round-2]))
+        $grid = JSON.parse(log_value[round-2])
     }
-    
-    $: console.log('Grid: ', log_value)
+
+    const updateLog = (value) => {
+        $log = [...log_value, JSON.stringify(value)]
+    }
 
 </script>
 
@@ -364,7 +425,7 @@
                         {#if cell.length > 1}
                             <div class="stackDisplay">
                                 <div on:click={() => {onClick('cell', x, y)}} 
-                                    style="font-weight: bold; height: 100%;">
+                                    style="font-weight: bold; height: 100%; width: 100%; text-align: center;">
                                     {cell.length}
                                 </div>
                                 <div class="stack">
@@ -404,7 +465,7 @@
         <button on:click={() => placePiece(selected, Road)}>Weg</button>
         <button on:click={() => placePiece(selected, Wall)}>Muur</button>
         <button on:click={() => {endTurn()}}>Einde beurt</button>
-        <button on:click={() => goBack()}>Undo</button>
+        <button on:click={() => undo()}>Undo</button>
     </div>
 </body>
 
@@ -488,7 +549,7 @@
 
     .topStackFill {
         width: 100%;
-        height: 70px;
+        flex: 1;
         box-sizing: border-box;
     }
 
