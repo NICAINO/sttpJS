@@ -18,6 +18,7 @@ import { element } from 'svelte/internal';
         z: null,
     }
 
+    let reachableCells = []
     let possibleCells = []
     let placeableCells = []
 
@@ -76,7 +77,7 @@ import { element } from 'svelte/internal';
                     console.log('Stack too high')
                 } else {
                     // Wordt uitgevoerd als de stack verplaatsbaar is (dus aan alle voorwaarden voldoet)
-                    checkPossibleCells(x, y) 
+                    checkReachableCells(x, y) 
                     //checkPlaceableCells(x, y)
                 }
             } else if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null) {
@@ -149,7 +150,7 @@ import { element } from 'svelte/internal';
     const movement = (x, y, movingStack) => {
         pieceAction(x, y, movingStack[0], movingStack[0])
         movingStack.splice(0, 1)
-        updatePossibleCells(x, y)
+        //updatePossibleCells(x, y)
         //updatePlaceableCells(x, y)
         if (placeableCells.length === 1) {
             console.log('1 possible move')
@@ -177,12 +178,12 @@ import { element } from 'svelte/internal';
     }
     
     //Met deze functie wordt nog nix gedaan. Mr ik dacht iets te maken zodat er wordt gekeken wat mogelijke cellen zijn om je shit nrtoe te plaatsen
-    const checkPossibleCells = (x,y) => {
-        possibleCells = []
+    const checkReachableCells = (x,y) => {
+        reachableCells = []
         let array = grid_value[selectedPiece.y][selectedPiece.x]
         let height = array.length - selectedPiece.z
         for (let i = 1; i < (height+1); i++) {
-            possibleCells.push(
+            reachableCells.push(
                 {x: x - i, y: y}, 
                 {x: x, y: y - i}, 
                 {x: x + i, y: y}, 
@@ -191,33 +192,34 @@ import { element } from 'svelte/internal';
         }
     }
 
-    const updatePossibleCells = (x, y) => {
-        possibleCells = []
-        possibleCells.push({x: x, y: y})
-        let height = movingStack.length
-        if (direction === 'up') {
-            for (let i = 1; i < (height+1); i++) {
-                possibleCells.push({x: x, y: y - i})
-            }
-        } else if (direction === 'down') {
-            for (let i = 1; i < (height+1); i++) {
-                possibleCells.push({x: x, y: y + i})
-            }
-        } else if (direction === 'left') {
-            for (let i = 1; i < (height+1); i++) {
-                possibleCells.push({x: x - i, y: y})
-            }
-        } else if (direction === 'right') {
-            for (let i = 1; i < (height+1); i++) {
-                possibleCells.push({x: x + i, y: y})
-            }
-        } else {
-            console.log('Something went wrong')
-        }
-    }
+    $: console.log('rc: ', reachableCells)
+
+    // const updatePossibleCells = (x, y) => {
+    //     possibleCells = []
+    //     possibleCells.push({x: x, y: y})
+    //     let height = movingStack.length
+    //     if (direction === 'up') {
+    //         for (let i = 1; i < (height+1); i++) {
+    //             possibleCells.push({x: x, y: y - i})
+    //         }
+    //     } else if (direction === 'down') {
+    //         for (let i = 1; i < (height+1); i++) {
+    //             possibleCells.push({x: x, y: y + i})
+    //         }
+    //     } else if (direction === 'left') {
+    //         for (let i = 1; i < (height+1); i++) {
+    //             possibleCells.push({x: x - i, y: y})
+    //         }
+    //     } else if (direction === 'right') {
+    //         for (let i = 1; i < (height+1); i++) {
+    //             possibleCells.push({x: x + i, y: y})
+    //         }
+    //     } else {
+    //         console.log('Something went wrong')
+    //     }
+    // }
 
     const isReachPossible = (x, y) => {
-        // console.log(possibleCells, possibleCells.length)
         for (let i = 0; i < possibleCells.length; i++) {    
             if (possibleCells[i].x == x && possibleCells[i].y == y) {
                 return true
@@ -226,29 +228,39 @@ import { element } from 'svelte/internal';
         return false
     }
 
+    $: possibleCells = reachableCells.filter(possibleCellsFilter);
+
+    const possibleCellsFilter = (item) => {
+        for (let i = 0; i < reachableCells.length; i++) {
+            if (item.x < 0 || item.x > 4 || item.y < 0 || item.y > 4) {
+                return false
+            } else {
+                let array = grid_value[item.y][item.x]
+                if (array.length === 0) {
+                    return true 
+                } else if (array.length !== 10 && array[array.length - 1].type !== 'wall' && array[array.length - 1].type !== 'pyramid') {
+                    return true
+                } else return false
+            }
+        }
+    }
+
+    $: console.log('PC: ', possibleCells)
+
     $: placeableCells = possibleCells.filter(placeableCellsFilter);
+
+    $: console.log('PlaceC: ', placeableCells)
 
     const placeableCellsFilter = (item) => {
         for (let i = 0; i < possibleCells.length; i++) {
             if (Math.abs(item.x - selected.x) + Math.abs(item.y - selected.y) === 1) {
-                if (checkPlaceability(item.x, item.y)) {
-                    return true
-                } return false
-            } return false
+                console.log('In reach: ', item)
+                return true
+            } else if (Math.abs(item.x - selected.x) + Math.abs(item.y - selected.y) === 0 && movingStack.length !== 0) {
+                console.log('In reach: ', item)
+                return true
+            } else return false
         }
-    }
-
-    const checkPlaceability = (x, y) => {
-        if (x >= 0 && x < 5 && y >= 0 && y < 5) {
-            let array = grid_value[y][x]
-            if (array.length === 0) {
-               return true 
-            } else {
-                if (array.length !== 10 && array[array.length - 1].type !== 'wall' && array[array.length - 1].type !== 'pyramid') {
-                    return true
-                } else return false
-            } 
-        } else return false
     }
 
     const isMovePossible = (x, y) => {
@@ -334,6 +346,7 @@ import { element } from 'svelte/internal';
             z: null,
         }
         if (movingStack.length === 0) {
+            reachableCells = []
             possibleCells = []
             placeableCells = []
         }
@@ -352,6 +365,7 @@ import { element } from 'svelte/internal';
             {currentPlayer = players.player1}
         updateLog($grid)
         round += 1
+        reachableCells = []
         possibleCells = []
         placeableCells = []
     }
