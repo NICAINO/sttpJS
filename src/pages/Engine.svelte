@@ -228,15 +228,13 @@
     const checkPlaceability = (x, y) => {
         if (x >= 0 && x < 5 && y >= 0 && y < 5) {
             let array = grid_value[y][x]
-            if (array !== undefined) {
-                if (array.length !== 0) {
-                    if (array.length !== 10) {
-                        if (array[array.length - 1].type === 'wall' || array[array.length - 1].type === 'pyramid') {
-                            return false
-                        } else return true
-                    } else return false
-                } else return true
-            } else return false
+            if (array.length === 0) {
+               return true 
+            } else {
+                if (array.length !== 10 && array[array.length - 1].type !== 'wall' && array[array.length - 1].type !== 'pyramid') {
+                    return true
+                } else return false
+            } 
         } else return false
     }
 
