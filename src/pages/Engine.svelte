@@ -3,6 +3,7 @@
     import Wall  from '../../components/pieces/Wall'
     import Road  from '../../components/pieces/Road'
     import Pyramid  from '../../components/pieces/Pyramid'
+import { element } from 'svelte/internal';
     
     let round = 0;
     let grid_value = [];
@@ -19,7 +20,6 @@
 
     let possibleCells = []
     let placeableCells = []
-    let localLog = []
 
     let direction;
 
@@ -63,54 +63,48 @@
     }
 
     const onClick = (clickedOn, x, y, piece) => {
-        let didEndTurn = false
         if (clickedOn === 'piece') {
             // Select cell en zet andere info op nul
             selectCell(x, y)
             let top = grid_value[y][x][grid_value[y][x].length-1]
             // Bij eigen piece return true anders false
-            if (selectPiece(piece, x, y, top)) {
+            if (selectPiece(piece, top)) {
                 let height = grid_value[y][x].length - selectedPiece.z
                 // Check of de geselcteerde stack niet hoger is dan de maximale hoogte
                 if (height > 5) {
                     // Wordt uitgevoerd als stack te hoog is
                     console.log('Stack too high')
                 } else {
-                    // Wordt als de stack verplaatsbaar is (dus aan alle voorwaarden voldoet)
+                    // Wordt uitgevoerd als de stack verplaatsbaar is (dus aan alle voorwaarden voldoet)
                     checkPossibleCells(x, y) 
-                    checkPlaceableCells(x, y)
-                } 
+                    //checkPlaceableCells(x, y)
+                }
+            } else if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null) {
+                // Wordt uitgevoerd als je al je eigen piece had geselect en andermans piece selecte
+                beginMovement(x, y)
+            } else if (movingStack.length !== 0 && isMovePossible(x, y)) {
+                movement(x, y)
             } else {
-                // wordt uitgevoerd als de piece niet van jou is
-                onClick('cell', x, y, true)
-
+                // wordt uitgevoerd als de piece niet van jou is en je niet aan het moven bent
+                console.log('Not your stack')
             }
         } else if (clickedOn === 'cell') {
             // Select cell en zet andere info op nul
             if(selectCell(x, y, piece)) {
                 // Als er een piece is geselect dan true anders false
-                if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null ) {
-                    if (isMovePossible(x, y) && isReachPossible(x, y)) {
-                        let array = grid_value[selectedPiece.y][selectedPiece.x]
-                        movingStack = array.splice(selectedPiece.z)
-                        deselectPiece()
-                        determineDirection(x, y, movingStack)
-                        movement(x, y, movingStack)
-                        
-                    } else {
-                        console.log('No movement possible')
-                    }
+                if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null) {
+                    beginMovement(x, y)
                 } else if (movingStack.length > 0) {
-                    if (isMovePossible(x, y) && isReachPossible(x, y)) {
+                    if (isMovePossible(x, y)) {
                         movement(x, y, movingStack)
                     } else {
                         console.log('Move is not possible')
-                    }
+                    } 
                 } else {
                     console.log('No piece selected')
                 }
             } else if (movingStack.length > 0) {
-                if(isMovePossible(x, y) && isReachPossible(x, y)) {
+                if(isMovePossible(x, y)) {
                     movement(x, y, movingStack)
                 } else {
                     console.log('Move is not possible')
@@ -121,8 +115,17 @@
         } else {
             console.log('?')
         }
-        if (didEndTurn) {
-            endTurn()
+    }
+
+    const beginMovement = (x, y) => {
+        if (isMovePossible(x, y) && isReachPossible(x, y)) {
+            let array = grid_value[selectedPiece.y][selectedPiece.x]
+            movingStack = array.splice(selectedPiece.z)
+            deselectPiece()
+            determineDirection(x, y, movingStack)
+            movement(x, y, movingStack)        
+        } else {
+            console.log('No movement possible')
         }
     }
 
@@ -147,7 +150,7 @@
         pieceAction(x, y, movingStack[0], movingStack[0])
         movingStack.splice(0, 1)
         updatePossibleCells(x, y)
-        updatePlaceableCells(x, y)
+        //updatePlaceableCells(x, y)
         if (placeableCells.length === 1) {
             console.log('1 possible move')
             for (let i = 0; i < movingStack.length; i++) {
@@ -160,10 +163,8 @@
         }
     }
 
-    const selectCell = (x, y, bypass) => {
-        if (bypass == true) {
-            return true
-        } else if (selected.x == x && selected.y == y) {
+    const selectCell = (x, y) => {
+        if (selected.x == x && selected.y == y) {
             return false
         } else {
             if (selectedPiece.x == x && selectedPiece.y == y) {
@@ -225,6 +226,18 @@
         return false
     }
 
+    $: placeableCells = possibleCells.filter(placeableCellsFilter);
+
+    const placeableCellsFilter = (item) => {
+        for (let i = 0; i < possibleCells.length; i++) {
+            if (Math.abs(item.x - selected.x) + Math.abs(item.y - selected.y) === 1) {
+                if (checkPlaceability(item.x, item.y)) {
+                    return true
+                } return false
+            } return false
+        }
+    }
+
     const checkPlaceability = (x, y) => {
         if (x >= 0 && x < 5 && y >= 0 && y < 5) {
             let array = grid_value[y][x]
@@ -236,62 +249,6 @@
                 } else return false
             } 
         } else return false
-    }
-
-    const checkPlaceableCells = (x, y) => {
-        placeableCells = []
-        if (checkPlaceability(x - 1, y)) {
-            placeableCells.push(
-                {x: x - 1, y: y}
-            )
-        }
-        if (checkPlaceability(x + 1, y)) {
-            placeableCells.push(
-                {x: x + 1, y: y}
-            )
-        }
-        if (checkPlaceability(x, y - 1)) {
-            placeableCells.push(
-                {x: x, y: y - 1}
-            )
-        }
-        if (checkPlaceability(x, y + 1)) {
-            placeableCells.push(
-                {x: x, y: y + 1}
-            )
-        }
-    }
-
-    const updatePlaceableCells = (x, y) => {
-        placeableCells = []
-        placeableCells.push({x: x, y: y})
-        if (direction === 'up') {
-            if (checkPlaceability(x, y - 1)) {
-                placeableCells.push(
-                    {x: x, y: y - 1}
-                )
-            }
-        } else if (direction === 'down') {
-            if (checkPlaceability(x, y + 1)) {
-                placeableCells.push(
-                    {x: x, y: y + 1}
-                )
-            }
-        } else if (direction === 'left') {
-            if (checkPlaceability(x - 1, y)) {
-                placeableCells.push(
-                    {x: x - 1, y: y}
-                )
-            }
-        } else if (direction === 'right') {
-            if (checkPlaceability(x + 1, y)) {
-                placeableCells.push(
-                    {x: x + 1, y: y}
-                )
-            }   
-        } else {
-            console.log('Something went wrong')
-        }
     }
 
     const isMovePossible = (x, y) => {
@@ -351,7 +308,7 @@
     }
 
     //Select ie een piece
-    const selectPiece = (piece,x,y,top) => {
+    const selectPiece = (piece, top) => {
         //Gecheckt of de active player wel de stack owned waarin hij een piece probeert te selecteren
         if (top.color === currentPlayer.color) {
             //Checken of de peice niet al is de geselecteerd
@@ -365,7 +322,6 @@
                 return false
             }
         } else {
-            console.log('Not your stack')
             return false
         }
     }
