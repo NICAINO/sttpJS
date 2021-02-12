@@ -83,7 +83,7 @@ import { element } from 'svelte/internal';
             } else if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null) {
                 // Wordt uitgevoerd als je al je eigen piece had geselect en andermans piece selecte
                 beginMovement(x, y)
-            } else if (movingStack.length !== 0 && isMovePossible(x, y)) {
+            } else if (movingStack.length > 0 && isCellPlaceable(x, y)) {
                 movement(x, y)
             } else {
                 // wordt uitgevoerd als de piece niet van jou is en je niet aan het moven bent
@@ -95,21 +95,13 @@ import { element } from 'svelte/internal';
                 // Als er een piece is geselect dan true anders false
                 if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null) {
                     beginMovement(x, y)
-                } else if (movingStack.length > 0) {
-                    if (isMovePossible(x, y)) {
+                } else if (movingStack.length > 0 && isCellPlaceable(x, y)) {
                         movement(x, y, movingStack)
-                    } else {
-                        console.log('Move is not possible')
-                    } 
                 } else {
                     console.log('No piece selected')
                 }
-            } else if (movingStack.length > 0) {
-                if(isMovePossible(x, y)) {
+            } else if (movingStack.length > 0 && isCellPlaceable(x, y)) {
                     movement(x, y, movingStack)
-                } else {
-                    console.log('Move is not possible')
-                }
             } else {
                 console.log('Same cell')
             }
@@ -119,7 +111,7 @@ import { element } from 'svelte/internal';
     }
 
     const beginMovement = (x, y) => {
-        if (isMovePossible(x, y) && isReachPossible(x, y)) {
+        if (isCellPlaceable(x, y)) {
             let array = grid_value[selectedPiece.y][selectedPiece.x]
             movingStack = array.splice(selectedPiece.z)
             deselectPiece()
@@ -150,8 +142,7 @@ import { element } from 'svelte/internal';
     const movement = (x, y, movingStack) => {
         pieceAction(x, y, movingStack[0], movingStack[0])
         movingStack.splice(0, 1)
-        //updatePossibleCells(x, y)
-        //updatePlaceableCells(x, y)
+        updateReachableCells(x, y)
         if (placeableCells.length === 1) {
             console.log('1 possible move')
             for (let i = 0; i < movingStack.length; i++) {
@@ -177,7 +168,6 @@ import { element } from 'svelte/internal';
         }
     }
     
-    //Met deze functie wordt nog nix gedaan. Mr ik dacht iets te maken zodat er wordt gekeken wat mogelijke cellen zijn om je shit nrtoe te plaatsen
     const checkReachableCells = (x,y) => {
         reachableCells = []
         let array = grid_value[selectedPiece.y][selectedPiece.x]
@@ -192,40 +182,29 @@ import { element } from 'svelte/internal';
         }
     }
 
-    $: console.log('rc: ', reachableCells)
-
-    // const updatePossibleCells = (x, y) => {
-    //     possibleCells = []
-    //     possibleCells.push({x: x, y: y})
-    //     let height = movingStack.length
-    //     if (direction === 'up') {
-    //         for (let i = 1; i < (height+1); i++) {
-    //             possibleCells.push({x: x, y: y - i})
-    //         }
-    //     } else if (direction === 'down') {
-    //         for (let i = 1; i < (height+1); i++) {
-    //             possibleCells.push({x: x, y: y + i})
-    //         }
-    //     } else if (direction === 'left') {
-    //         for (let i = 1; i < (height+1); i++) {
-    //             possibleCells.push({x: x - i, y: y})
-    //         }
-    //     } else if (direction === 'right') {
-    //         for (let i = 1; i < (height+1); i++) {
-    //             possibleCells.push({x: x + i, y: y})
-    //         }
-    //     } else {
-    //         console.log('Something went wrong')
-    //     }
-    // }
-
-    const isReachPossible = (x, y) => {
-        for (let i = 0; i < possibleCells.length; i++) {    
-            if (possibleCells[i].x == x && possibleCells[i].y == y) {
-                return true
+    const updateReachableCells = (x, y) => {
+        reachableCells = []
+        reachableCells.push({x: x, y: y})
+        let height = movingStack.length
+        if (direction === 'up') {
+            for (let i = 1; i < (height+1); i++) {
+                reachableCells.push({x: x, y: y - i})
             }
+        } else if (direction === 'down') {
+            for (let i = 1; i < (height+1); i++) {
+                reachableCells.push({x: x, y: y + i})
+            }
+        } else if (direction === 'left') {
+            for (let i = 1; i < (height+1); i++) {
+                reachableCells.push({x: x - i, y: y})
+            }
+        } else if (direction === 'right') {
+            for (let i = 1; i < (height+1); i++) {
+                reachableCells.push({x: x + i, y: y})
+            }
+        } else {
+            console.log('Something went wrong')
         }
-        return false
     }
 
     $: possibleCells = reachableCells.filter(possibleCellsFilter);
@@ -245,11 +224,7 @@ import { element } from 'svelte/internal';
         }
     }
 
-    $: console.log('PC: ', possibleCells)
-
     $: placeableCells = possibleCells.filter(placeableCellsFilter);
-
-    $: console.log('PlaceC: ', placeableCells)
 
     const placeableCellsFilter = (item) => {
         for (let i = 0; i < possibleCells.length; i++) {
@@ -263,7 +238,16 @@ import { element } from 'svelte/internal';
         }
     }
 
-    const isMovePossible = (x, y) => {
+    const isCellPossible = (x, y) => {
+        for (let i = 0; i < possibleCells.length; i++) {    
+            if (possibleCells[i].x == x && possibleCells[i].y == y) {
+                return true
+            }
+        }
+        return false
+    }
+
+    const isCellPlaceable = (x, y) => {
         for (let i = 0; i < placeableCells.length; i++) {    
             if (placeableCells[i].x == x && placeableCells[i].y == y) {
                 return true
@@ -280,8 +264,8 @@ import { element } from 'svelte/internal';
                 if (grid_value[selected.y][selected.x].length === 0) {
                     let succes = pieceAction(selected.x, selected.y, type, currentPlayer)
                     if (succes) {
-                        //Als ie een piece heeft kunnen plaatsen dan heeft de speler een peice minder 
-                        deductPiece()
+                        //Als ie een piece heeft kunnen plaatsen dan heeft de speler een piece minder 
+                        currentPlayer.pieces -= 1
                         //En is zn beurt voorbij
                         endTurn()
                     } else {
@@ -347,14 +331,7 @@ import { element } from 'svelte/internal';
         }
         if (movingStack.length === 0) {
             reachableCells = []
-            possibleCells = []
-            placeableCells = []
         }
-    }
-
-    //Is gwn dat er een piece wordt afgetrokken van het aantal pieces dat een speler heeft
-    const deductPiece = () => {
-        currentPlayer.pieces = currentPlayer.pieces-1
     }
 
     //Wisselt van currentplayer
@@ -366,8 +343,6 @@ import { element } from 'svelte/internal';
         updateLog($grid)
         round += 1
         reachableCells = []
-        possibleCells = []
-        placeableCells = []
     }
 
     const undo = () => {
@@ -389,7 +364,7 @@ import { element } from 'svelte/internal';
         {#each $grid as row, y}
             <div class="row">
                 {#each row as cell, x}
-                    <div class="{selected.x === x && selected.y === y ? "selectedCell"  : (possibleCells && isReachPossible(x,y)) ? "possibleCell" : "cell"}">
+                    <div class="{selected.x === x && selected.y === y ? "selectedCell"  : (possibleCells && isCellPossible(x,y)) ? "possibleCell" : "cell"}">
                         {#if cell.length > 1}
                             <div class="stackDisplay">
                                 <div on:click={() => {onClick('cell', x, y)}} 
