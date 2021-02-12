@@ -76,9 +76,7 @@
                     console.log('Stack too high')
                 } else {
                     // Wordt uitgevoerd als de stack verplaatsbaar is (dus aan alle voorwaarden voldoet)
-                    //checkReachableCells(x, y)
                     checkPossibleCells(piece, height, piece.location) 
-                    //checkPlaceableCells(x, y)
                 }
             } else if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null) {
                 // Wordt uitgevoerd als je al je eigen piece had geselect en andermans piece selecte
@@ -142,17 +140,18 @@
     const movement = (x, y, movingStack) => {
         pieceAction(x, y, movingStack[0], movingStack[0])
         movingStack.splice(0, 1)
-        //updateReachableCells(x, y)
-        checkPossibleCells(movingStack[0], movingStack.length, selected)
-        if (placeableCells.length === 1) {
-            console.log('1 possible move')
-            for (let i = 0; i < movingStack.length; i++) {
-                pieceAction(x, y, movingStack[i], movingStack[i])
-            }
-            movingStack = []
-        }
         if (movingStack.length === 0) {
             endTurn()
+        } else {
+            checkPossibleCells(movingStack[0], movingStack.length, selected)
+            if (possibleCells.length === 1) {
+                console.log('1 possible move')
+                for (let i = 0; i < movingStack.length; i++) {
+                    pieceAction(x, y, movingStack[i], movingStack[i])
+                }
+                movingStack = []
+                endTurn()
+            }
         }
     }
 
@@ -240,15 +239,13 @@
         }
     }
 
-    $: console.log("possible cells: ", possibleCells, "placable cells: ", placeableCells)
+    $: console.log("possible cells: ", possibleCells, possibleCells.length, "placable cells: ", placeableCells, placeableCells.length)
 
     $: placeableCells = possibleCells.filter(placeableCellsFilter);
 
     const placeableCellsFilter = (item) => {
         for (let i = 0; i < possibleCells.length; i++) {
-            if (Math.abs(item.x - selected.x) + Math.abs(item.y - selected.y) === 1) {
-                return true
-            } else if (Math.abs(item.x - selected.x) + Math.abs(item.y - selected.y) === 0 && movingStack.length !== 0) {
+            if (Math.abs(item.x - selected.x) + Math.abs(item.y - selected.y) <= 1) {
                 return true
             } else return false
         }
@@ -350,7 +347,6 @@
         }
         if (movingStack.length === 0) {
             possibleCells = []
-            reachableCells = []
         }
     }
 
@@ -363,7 +359,7 @@
         updateLog($grid)
         round += 1
         direction = ''
-        reachableCells = []
+        possibleCells = []
     }
 
     const undo = () => {
