@@ -167,6 +167,18 @@ import { element } from 'svelte/internal';
             return true
         }
     }
+
+    // if (direction === 'up' || direction === '') {
+    //     for (let i = 1; i < (height+1); i++) {
+    //         if (y - i >= 0) {
+    //             if (grid_value[y-i][x].length > 0) {
+    //                 if (grid_value[y-i][x][grid_value[y-i][x].length -1].type === 'wall' || grid_value[y-i][x][grid_value[y-i][x].length -1].type === 'wall') {
+    //                     break
+    //                 } else {reachableCells.push({x: x, y: y - i})}
+    //             } else {reachableCells.push({x: x, y: y - i})}
+    //         }
+    //     }
+    // }
     
     const checkReachableCells = (x,y) => {
         reachableCells = []
@@ -229,10 +241,8 @@ import { element } from 'svelte/internal';
     const placeableCellsFilter = (item) => {
         for (let i = 0; i < possibleCells.length; i++) {
             if (Math.abs(item.x - selected.x) + Math.abs(item.y - selected.y) === 1) {
-                console.log('In reach: ', item)
                 return true
             } else if (Math.abs(item.x - selected.x) + Math.abs(item.y - selected.y) === 0 && movingStack.length !== 0) {
-                console.log('In reach: ', item)
                 return true
             } else return false
         }
