@@ -1,8 +1,7 @@
 export default {
-
     type: "wall",
     color: "black",
-    x: null,
-    y: null,
-    z: null
-}
+    "road": true,  
+    "wall": false,  
+    "pyramid": false 
+    }

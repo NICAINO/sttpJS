@@ -3,7 +3,6 @@
     import Wall  from '../../components/pieces/Wall'
     import Road  from '../../components/pieces/Road'
     import Pyramid  from '../../components/pieces/Pyramid'
-import { element } from 'svelte/internal';
     
     let round = 0;
     let grid_value = [];
@@ -11,7 +10,7 @@ import { element } from 'svelte/internal';
     let selected = {
         x: 0,
         y: 0
-        }
+    }
     let selectedPiece = {
         x: null,
         y: null,
@@ -77,7 +76,8 @@ import { element } from 'svelte/internal';
                     console.log('Stack too high')
                 } else {
                     // Wordt uitgevoerd als de stack verplaatsbaar is (dus aan alle voorwaarden voldoet)
-                    checkReachableCells(x, y) 
+                    //checkReachableCells(x, y)
+                    checkPossibleCells(piece, height, piece.location) 
                     //checkPlaceableCells(x, y)
                 }
             } else if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null) {
@@ -142,7 +142,8 @@ import { element } from 'svelte/internal';
     const movement = (x, y, movingStack) => {
         pieceAction(x, y, movingStack[0], movingStack[0])
         movingStack.splice(0, 1)
-        updateReachableCells(x, y)
+        //updateReachableCells(x, y)
+        checkPossibleCells(movingStack[0], movingStack.length, selected)
         if (placeableCells.length === 1) {
             console.log('1 possible move')
             for (let i = 0; i < movingStack.length; i++) {
@@ -168,73 +169,78 @@ import { element } from 'svelte/internal';
         }
     }
 
-    // if (direction === 'up' || direction === '') {
-    //     for (let i = 1; i < (height+1); i++) {
-    //         if (y - i >= 0) {
-    //             if (grid_value[y-i][x].length > 0) {
-    //                 if (grid_value[y-i][x][grid_value[y-i][x].length -1].type === 'wall' || grid_value[y-i][x][grid_value[y-i][x].length -1].type === 'wall') {
-    //                     break
-    //                 } else {reachableCells.push({x: x, y: y - i})}
-    //             } else {reachableCells.push({x: x, y: y - i})}
-    //         }
-    //     }
-    // }
-    
-    const checkReachableCells = (x,y) => {
-        reachableCells = []
-        let array = grid_value[selectedPiece.y][selectedPiece.x]
-        let height = array.length - selectedPiece.z
-        for (let i = 1; i < (height+1); i++) {
-            reachableCells.push(
-                {x: x - i, y: y}, 
-                {x: x, y: y - i}, 
-                {x: x + i, y: y}, 
-                {x: x, y: y + i}
-            )
+    // let voCells = []
+    const checkPossibleCells = (piece, height, location) => {
+        possibleCells = []
+        if (movingStack.length > 0) {
+            possibleCells.push({x: location.x, y: location.y})
+        }
+        // up
+        if (direction === 'up' || direction == '') {
+            for (let i = 1; i < (height + 1); i++) {
+                let y = location.y - i
+                let x = location.x
+                if (y >= 0) {
+                    if (grid_value[y][x].length > 0) {
+                        let type = grid_value[y][x][grid_value[y][x].length - 1].type
+                        if (grid_value[y][x].length === 10 || !piece[type]) {
+                            console.log('nee omhoog')
+                            break
+                        } else {possibleCells.push({x: x, y: y})}
+                    } else {possibleCells.push({x: x, y: y})}
+                } else break
+            }
+        }
+        // down
+        if (direction === 'down' || direction === '') {
+            for (let i = 1; i < (height + 1); i++) {
+                let y = location.y + i
+                let x = location.x
+                if (y < 5) {
+                    if (grid_value[y][x].length > 0) {
+                        let type = grid_value[y][x][grid_value[y][x].length - 1].type
+                        if (grid_value[y][x].length === 10 || !piece[type]) {
+                            console.log('nee benee')
+                            break
+                        } else {possibleCells.push({x: x, y: y})}
+                    } else {possibleCells.push({x: x, y: y})}
+                }
+            }
+        }
+        // left
+        if (direction === 'left' || direction === '') {
+            for (let i = 1; i < (height + 1); i++) {
+                let y = location.y 
+                let x = location.x - i
+                if (x >= 0) {
+                    if (grid_value[y][x].length > 0) {
+                        let type = grid_value[y][x][grid_value[y][x].length - 1].type
+                        if (grid_value[y][x].length === 10 || !piece[type]) {
+                            console.log('nee links')
+                            break
+                        } else {possibleCells.push({x: x, y: y})}
+                    } else {possibleCells.push({x: x, y: y})}
+                }
+            }
+        }
+        if (direction === 'right' || direction === '') {
+            for (let i = 1; i < (height + 1); i++) {
+                let y = location.y 
+                let x = location.x + i
+                if (x < 5) {
+                    if (grid_value[y][x].length > 0) {
+                        let type = grid_value[y][x][grid_value[y][x].length - 1].type
+                        if (grid_value[y][x].length === 10 || !piece[type]) {
+                            console.log('nee rechts')
+                            break
+                        } else {possibleCells.push({x: x, y: y})}
+                    } else {possibleCells.push({x: x, y: y})}
+                }
+            }
         }
     }
 
-    const updateReachableCells = (x, y) => {
-        reachableCells = []
-        reachableCells.push({x: x, y: y})
-        let height = movingStack.length
-        if (direction === 'up') {
-            for (let i = 1; i < (height+1); i++) {
-                reachableCells.push({x: x, y: y - i})
-            }
-        } else if (direction === 'down') {
-            for (let i = 1; i < (height+1); i++) {
-                reachableCells.push({x: x, y: y + i})
-            }
-        } else if (direction === 'left') {
-            for (let i = 1; i < (height+1); i++) {
-                reachableCells.push({x: x - i, y: y})
-            }
-        } else if (direction === 'right') {
-            for (let i = 1; i < (height+1); i++) {
-                reachableCells.push({x: x + i, y: y})
-            }
-        } else {
-            console.log('Something went wrong')
-        }
-    }
-
-    $: possibleCells = reachableCells.filter(possibleCellsFilter);
-
-    const possibleCellsFilter = (item) => {
-        for (let i = 0; i < reachableCells.length; i++) {
-            if (item.x < 0 || item.x > 4 || item.y < 0 || item.y > 4) {
-                return false
-            } else {
-                let array = grid_value[item.y][item.x]
-                if (array.length === 0) {
-                    return true 
-                } else if (array.length !== 10 && array[array.length - 1].type !== 'wall' && array[array.length - 1].type !== 'pyramid') {
-                    return true
-                } else return false
-            }
-        }
-    }
+    $: console.log("possible cells: ", possibleCells, "placable cells: ", placeableCells)
 
     $: placeableCells = possibleCells.filter(placeableCellsFilter);
 
@@ -303,7 +309,10 @@ import { element } from 'svelte/internal';
                     x: x,
                     y: y,
                     z: grid_value[y][x].length,
-                }
+                },
+                "road": type['road'],
+                "wall": type['wall'],
+                "pyramid": type['pyramid']
             }
             $grid[y][x] =  [...grid_value[y][x], piece]
             return true
@@ -340,6 +349,7 @@ import { element } from 'svelte/internal';
             z: null,
         }
         if (movingStack.length === 0) {
+            possibleCells = []
             reachableCells = []
         }
     }
@@ -352,6 +362,7 @@ import { element } from 'svelte/internal';
             {currentPlayer = players.player1}
         updateLog($grid)
         round += 1
+        direction = ''
         reachableCells = []
     }
 
