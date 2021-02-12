@@ -17,11 +17,10 @@
         z: null,
     }
 
-    let reachableCells = []
     let possibleCells = []
-    let placeableCells = []
+    $: placeableCells = possibleCells.filter(placeableCellsFilter);
 
-    let direction;
+    let direction = '';
 
     let movingStack = []
 
@@ -65,7 +64,7 @@
     const onClick = (clickedOn, x, y, piece) => {
         if (clickedOn === 'piece') {
             // Select cell en zet andere info op nul
-            selectCell(x, y)
+            selectCell(x, y, false)
             let top = grid_value[y][x][grid_value[y][x].length-1]
             // Bij eigen piece return true anders false
             if (selectPiece(piece, top)) {
@@ -89,19 +88,14 @@
             }
         } else if (clickedOn === 'cell') {
             // Select cell en zet andere info op nul
-            if(selectCell(x, y, piece)) {
-                // Als er een piece is geselect dan true anders false
-                if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null) {
-                    beginMovement(x, y)
-                } else if (movingStack.length > 0 && isCellPlaceable(x, y)) {
-                        movement(x, y, movingStack)
-                } else {
-                    console.log('No piece selected')
-                }
+            selectCell(x, y, true)
+            // Als er een piece is geselect dan true anders false
+            if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null) {
+                beginMovement(x, y)
             } else if (movingStack.length > 0 && isCellPlaceable(x, y)) {
                     movement(x, y, movingStack)
             } else {
-                console.log('Same cell')
+                console.log('No piece selected')
             }
         } else {
             console.log('?')
@@ -115,8 +109,6 @@
             deselectPiece()
             determineDirection(x, y, movingStack)
             movement(x, y, movingStack)        
-        } else {
-            console.log('No movement possible')
         }
     }
 
@@ -134,7 +126,6 @@
         } else {
             console.log('Something went wrong')
         }
-        console.log('Direction: ', direction)
     }
 
     const movement = (x, y, movingStack) => {
@@ -155,17 +146,17 @@
         }
     }
 
-    const selectCell = (x, y) => {
+    const selectCell = (x, y, clickPiece) => {
         if (selected.x == x && selected.y == y) {
-            return false
-        } else {
-            if (selectedPiece.x == x && selectedPiece.y == y) {
+            console.log('Same cell')
+            if (selectedPiece.x == x && selectedPiece.y == y && clickPiece === true) {
                 deselectPiece()
-            } 
+            }
+        } else {
             selected.x = x
             selected.y = y
-            return true
         }
+        return true
     }
 
     // let voCells = []
@@ -183,7 +174,6 @@
                     if (grid_value[y][x].length > 0) {
                         let type = grid_value[y][x][grid_value[y][x].length - 1].type
                         if (grid_value[y][x].length === 10 || !piece[type]) {
-                            console.log('nee omhoog')
                             break
                         } else {possibleCells.push({x: x, y: y})}
                     } else {possibleCells.push({x: x, y: y})}
@@ -199,7 +189,6 @@
                     if (grid_value[y][x].length > 0) {
                         let type = grid_value[y][x][grid_value[y][x].length - 1].type
                         if (grid_value[y][x].length === 10 || !piece[type]) {
-                            console.log('nee benee')
                             break
                         } else {possibleCells.push({x: x, y: y})}
                     } else {possibleCells.push({x: x, y: y})}
@@ -215,7 +204,6 @@
                     if (grid_value[y][x].length > 0) {
                         let type = grid_value[y][x][grid_value[y][x].length - 1].type
                         if (grid_value[y][x].length === 10 || !piece[type]) {
-                            console.log('nee links')
                             break
                         } else {possibleCells.push({x: x, y: y})}
                     } else {possibleCells.push({x: x, y: y})}
@@ -230,7 +218,6 @@
                     if (grid_value[y][x].length > 0) {
                         let type = grid_value[y][x][grid_value[y][x].length - 1].type
                         if (grid_value[y][x].length === 10 || !piece[type]) {
-                            console.log('nee rechts')
                             break
                         } else {possibleCells.push({x: x, y: y})}
                     } else {possibleCells.push({x: x, y: y})}
@@ -238,10 +225,6 @@
             }
         }
     }
-
-    $: console.log("possible cells: ", possibleCells, possibleCells.length, "placable cells: ", placeableCells, placeableCells.length)
-
-    $: placeableCells = possibleCells.filter(placeableCellsFilter);
 
     const placeableCellsFilter = (item) => {
         for (let i = 0; i < possibleCells.length; i++) {
@@ -266,6 +249,7 @@
                 return true
             }
         }
+        console.log('No movement possible')
         return false
     }
 
