@@ -128,15 +128,16 @@
         }
     }
 
-    const flattenWall = () => {
-        console.log('flt wall')
+    const flattenWall = (stack) => {
+        let piece = stack.splice(stack.length - 1, 1)
+        console.log('piece: ', piece)
+        pieceAction(piece[0].location.x, piece[0].location.y, Road, piece[0])
     }
 
     const movement = (x, y, movingStack) => {
-        console.log('kkkkk: ', grid_value[y][x][grid_value[y][x].length - 1].type)
         if (grid_value[y][x].length > 0) {
             if(grid_value[y][x][grid_value[y][x].length - 1].type === 'wall') {
-                flattenWall()
+                flattenWall(grid_value[y][x])
                 pieceAction(x, y, movingStack[0], movingStack[0])
             } else {pieceAction(x, y, movingStack[0], movingStack[0])}
         } else {pieceAction(x, y, movingStack[0], movingStack[0])}
@@ -156,6 +157,8 @@
         }
     }
 
+    $: console.log('movingstack: ', movingStack)
+
     const selectCell = (x, y, clickPiece) => {
         if (selected.x == x && selected.y == y) {
             console.log('Same cell')
@@ -169,7 +172,6 @@
         return true
     }
 
-    // let voCells = []
     const checkPossibleCells = (height, stack, location) => {
         possibleCells = []
         if (movingStack.length > 0) {
@@ -226,7 +228,6 @@
         if (direction === 'right' || direction === '') {
             for (let i = 1; i < (height + 1); i++) {
                 let piece = stack[i - 1 + selectedPiece.z]
-                console.log('vo: ', piece)
                 let y = location.y 
                 let x = location.x + i
                 if (x < 5) {
