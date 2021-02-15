@@ -2,5 +2,5 @@ export default {
     type: "pyramid",
     "road": true,
     "wall": true,
-    "pyramid": true
+    "pyramid": false
 }

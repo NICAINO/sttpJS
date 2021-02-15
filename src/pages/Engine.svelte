@@ -75,7 +75,7 @@
                     console.log('Stack too high')
                 } else {
                     // Wordt uitgevoerd als de stack verplaatsbaar is (dus aan alle voorwaarden voldoet)
-                    checkPossibleCells(piece, height, piece.location) 
+                    checkPossibleCells(height, grid_value[y][x], piece.location) 
                 }
             } else if (selectedPiece.x !== null && selectedPiece.y !== null && selectedPiece.z !== null) {
                 // Wordt uitgevoerd als je al je eigen piece had geselect en andermans piece selecte
@@ -128,13 +128,23 @@
         }
     }
 
+    const flattenWall = () => {
+        console.log('flt wall')
+    }
+
     const movement = (x, y, movingStack) => {
-        pieceAction(x, y, movingStack[0], movingStack[0])
+        console.log('kkkkk: ', grid_value[y][x][grid_value[y][x].length - 1].type)
+        if (grid_value[y][x].length > 0) {
+            if(grid_value[y][x][grid_value[y][x].length - 1].type === 'wall') {
+                flattenWall()
+                pieceAction(x, y, movingStack[0], movingStack[0])
+            } else {pieceAction(x, y, movingStack[0], movingStack[0])}
+        } else {pieceAction(x, y, movingStack[0], movingStack[0])}
         movingStack.splice(0, 1)
         if (movingStack.length === 0) {
             endTurn()
         } else {
-            checkPossibleCells(movingStack[0], movingStack.length, selected)
+            checkPossibleCells(movingStack.length, movingStack, selected)
             if (possibleCells.length === 1) {
                 console.log('1 possible move')
                 for (let i = 0; i < movingStack.length; i++) {
@@ -160,7 +170,7 @@
     }
 
     // let voCells = []
-    const checkPossibleCells = (piece, height, location) => {
+    const checkPossibleCells = (height, stack, location) => {
         possibleCells = []
         if (movingStack.length > 0) {
             possibleCells.push({x: location.x, y: location.y})
@@ -168,6 +178,7 @@
         // up
         if (direction === 'up' || direction == '') {
             for (let i = 1; i < (height + 1); i++) {
+                let piece = stack[i - 1 + selectedPiece.z]
                 let y = location.y - i
                 let x = location.x
                 if (y >= 0) {
@@ -183,6 +194,7 @@
         // down
         if (direction === 'down' || direction === '') {
             for (let i = 1; i < (height + 1); i++) {
+                let piece = stack[i - 1 + selectedPiece.z]
                 let y = location.y + i
                 let x = location.x
                 if (y < 5) {
@@ -198,6 +210,7 @@
         // left
         if (direction === 'left' || direction === '') {
             for (let i = 1; i < (height + 1); i++) {
+                let piece = stack[i - 1 + selectedPiece.z]
                 let y = location.y 
                 let x = location.x - i
                 if (x >= 0) {
@@ -212,6 +225,8 @@
         }
         if (direction === 'right' || direction === '') {
             for (let i = 1; i < (height + 1); i++) {
+                let piece = stack[i - 1 + selectedPiece.z]
+                console.log('vo: ', piece)
                 let y = location.y 
                 let x = location.x + i
                 if (x < 5) {
@@ -408,6 +423,7 @@
     <div style="display: flex; flex-direction: row;">
         <button on:click={() => placePiece(selected, Road)}>Weg</button>
         <button on:click={() => placePiece(selected, Wall)}>Muur</button>
+        <button on:click={() => placePiece(selected, Pyramid)}>Piramide</button>
         <button on:click={() => {endTurn()}}>Einde beurt</button>
         <button on:click={() => undo()}>Undo</button>
     </div>
@@ -531,5 +547,7 @@
         height: 25px;
         border-top-right-radius: 25px;
         border-top-left-radius: 25px;
+        border: solid black;
+        border-width: 2px;
     }
 </style>
