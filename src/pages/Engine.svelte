@@ -25,7 +25,7 @@
 
     export let winner = undefined;
     export let movingStack = []
-    export const maxHeigth = 10
+    export const maxHeigth = 2
     export let players = {
         player1: {
             name:"Gonnoe Garfield",
@@ -185,7 +185,7 @@
                 if (y >= 0) {
                     if (grid_value[y][x].length > 0) {
                         let type = grid_value[y][x][grid_value[y][x].length - 1].type
-                        if (grid_value[y][x].length === 10 || !piece[type]) {
+                        if (grid_value[y][x].length === maxHeigth || !piece[type]) {
                             break
                         } else {possibleCells.push({x: x, y: y})}
                     } else {possibleCells.push({x: x, y: y})}
@@ -201,7 +201,7 @@
                 if (y < 5) {
                     if (grid_value[y][x].length > 0) {
                         let type = grid_value[y][x][grid_value[y][x].length - 1].type
-                        if (grid_value[y][x].length === 10 || !piece[type]) {
+                        if (grid_value[y][x].length === maxHeigth || !piece[type]) {
                             break
                         } else {possibleCells.push({x: x, y: y})}
                     } else {possibleCells.push({x: x, y: y})}
@@ -217,7 +217,7 @@
                 if (x >= 0) {
                     if (grid_value[y][x].length > 0) {
                         let type = grid_value[y][x][grid_value[y][x].length - 1].type
-                        if (grid_value[y][x].length === 10 || !piece[type]) {
+                        if (grid_value[y][x].length === maxHeigth || !piece[type]) {
                             break
                         } else {possibleCells.push({x: x, y: y})}
                     } else {possibleCells.push({x: x, y: y})}
@@ -232,7 +232,7 @@
                 if (x < 5) {
                     if (grid_value[y][x].length > 0) {
                         let type = grid_value[y][x][grid_value[y][x].length - 1].type
-                        if (grid_value[y][x].length === 10 || !piece[type]) {
+                        if (grid_value[y][x].length === maxHeigth || !piece[type]) {
                             break
                         } else {possibleCells.push({x: x, y: y})}
                     } else {possibleCells.push({x: x, y: y})}
@@ -432,8 +432,10 @@
     }
 
     const callAi = async(oldGrid) => {
-        const newGrid = await main(oldGrid)
+        let newGrid = await main(oldGrid, currentPlayer)
+        console.log(newGrid)
         $grid = newGrid
+        endTurn()
     }
 
 </script>
@@ -521,7 +523,7 @@
 
     .cell {
         display: flex;
-        height: calc(20vh - 15px);
+        height: calc(18vh - 15px);
         aspect-ratio: 1;
         border: solid #573a2e;
         border-width: 2px;
@@ -531,7 +533,7 @@
 
     .possibleCell {
         display: flex;
-        height: calc(20vh - 15px);
+        height: calc(18vh - 15px);
         aspect-ratio: 1;
         border: solid #573a2e;
         border-width: 2px;
@@ -541,7 +543,7 @@
 
     .selectedCell {
         display: flex;
-        height: calc(20vh - 15px);
+        height: calc(18vh - 15px);
         aspect-ratio: 1;
         border: solid #573a2e;
         border-width: 2px;
