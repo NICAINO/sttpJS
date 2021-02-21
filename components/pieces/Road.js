@@ -4,5 +4,6 @@ export default {
     color: "black",
     "road": true,
     "wall": false,
-    "pyramid": false
+    "pyramid": false,
+    "win": true
 }

@@ -3,6 +3,7 @@
     import Wall  from '../../components/pieces/Wall'
     import Road  from '../../components/pieces/Road'
     import Pyramid  from '../../components/pieces/Pyramid'
+    import { main } from '../ai/main'
     
     let round = 0;
     let grid_value = [];
@@ -22,10 +23,9 @@
 
     let direction = '';
 
-    let movingStack = []
-
+    export let winner = undefined;
+    export let movingStack = []
     export const maxHeigth = 10
-    
     export let players = {
         player1: {
             name:"Gonnoe Garfield",
@@ -45,7 +45,7 @@
 
     const unsubscribegrid = grid.subscribe(value => {
             grid_value = value;
-        });
+    });
 
     const unsubscribelog = log.subscribe(value => {
         log_value = value;
@@ -134,30 +134,29 @@
         pieceAction(piece[0].location.x, piece[0].location.y, Road, piece[0])
     }
 
-    const movement = (x, y, movingStack) => {
+    const movement = (x, y, stack) => {
         if (grid_value[y][x].length > 0) {
             if(grid_value[y][x][grid_value[y][x].length - 1].type === 'wall') {
                 flattenWall(grid_value[y][x])
-                pieceAction(x, y, movingStack[0], movingStack[0])
-            } else {pieceAction(x, y, movingStack[0], movingStack[0])}
-        } else {pieceAction(x, y, movingStack[0], movingStack[0])}
-        movingStack.splice(0, 1)
-        if (movingStack.length === 0) {
+                pieceAction(x, y, stack[0], stack[0])
+            } else {pieceAction(x, y, stack[0], stack[0])}
+        } else {pieceAction(x, y, stack[0], stack[0])}
+        stack.splice(0, 1)
+        movingStack = stack
+        if (stack.length === 0) {
             endTurn()
         } else {
-            checkPossibleCells(movingStack.length, movingStack, selected)
+            checkPossibleCells(stack.length, stack, selected)
             if (possibleCells.length === 1) {
                 console.log('1 possible move')
-                for (let i = 0; i < movingStack.length; i++) {
-                    pieceAction(x, y, movingStack[i], movingStack[i])
+                for (let i = 0; i < stack.length; i++) {
+                    pieceAction(x, y, stack[i], stack[i])
                 }
                 movingStack = []
                 endTurn()
             }
         }
     }
-
-    $: console.log('movingstack: ', movingStack)
 
     const selectCell = (x, y, clickPiece) => {
         if (selected.x == x && selected.y == y) {
@@ -309,7 +308,8 @@
                 },
                 "road": type['road'],
                 "wall": type['wall'],
-                "pyramid": type['pyramid']
+                "pyramid": type['pyramid'],
+                "win": type['win']
             }
             $grid[y][x] =  [...grid_value[y][x], piece]
             return true
@@ -357,6 +357,12 @@
         else 
             {currentPlayer = players.player1}
         updateLog($grid)
+        let win = winChecker(grid_value)
+        if (win !== undefined) {
+            //er heeft iemand gewonnen 
+            console.log("Er heeft iemand gewonnen namelijk: ", win)
+            winner = win
+        }
         round += 1
         direction = ''
         possibleCells = []
@@ -370,6 +376,64 @@
 
     const updateLog = (value) => {
         $log = [...log_value, JSON.stringify(value)]
+    }
+
+    const checkwinx = (grid, y,color) => {
+        let ans = 0;
+        for (let x = 0; x < 5; x++) {
+            if (grid[y][x][grid[y][x].length-1]!== undefined && grid[y][x][grid[y][x].length-1].color === color) {
+                if (grid[y][x][grid[y][x].length-1].win) {
+                    ans += 1 
+                }
+            } else break
+        }
+        return ans
+    }
+    const checkwiny = (grid, x,color) => {
+        let ans = 0;
+        for (let y = 0; y < 5; y++) {
+            if (grid[y][x][grid[y][x].length-1]!== undefined && grid[y][x][grid[y][x].length-1].color ===  color) {
+                if (grid[y][x][grid[y][x].length-1].win) {
+                    ans += 1 
+                }
+            } else break
+        }
+        return ans
+    }
+
+    const winChecker = (grid) => {
+        let whitewin = false;
+        let blackwin = false;
+
+        //loop x
+        for (let i = 0; i < 5; i++) {
+            //wit x
+            if (checkwinx(grid, i,"#f8dfa1") === 5) {
+                whitewin = true
+            };
+            //zwart x
+            if (checkwinx(grid, i,"#55342b") === 5) {
+                blackwin = true
+            };
+        };
+        //loop y 
+        for (let xi = 0; xi < 5; xi++) {
+            if (checkwiny(grid, xi,"#f8dfa1") === 5) {
+                whitewin = true
+            };
+            //zwart x
+            if (checkwiny(grid, xi,"#55342b") === 5) {
+                blackwin = true
+            };
+        };
+        if (whitewin) {return "white"} 
+        else if (blackwin) {return "black"}
+        else return undefined
+    }
+
+    const callAi = async(oldGrid) => {
+        const newGrid = await main(oldGrid)
+        $grid = newGrid
     }
 
 </script>
@@ -425,8 +489,9 @@
         <button on:click={() => placePiece(selected, Road)}>Weg</button>
         <button on:click={() => placePiece(selected, Wall)}>Muur</button>
         <button on:click={() => placePiece(selected, Pyramid)}>Piramide</button>
-        <button on:click={() => {endTurn()}}>Einde beurt</button>
+        <button on:click={() => endTurn()}>Einde beurt</button>
         <button on:click={() => undo()}>Undo</button>
+        <button on:click={() => callAi(grid_value)}>Lekker testen</button>
     </div>
 </body>
 
@@ -456,7 +521,7 @@
 
     .cell {
         display: flex;
-        width: 150px;
+        height: calc(20vh - 15px);
         aspect-ratio: 1;
         border: solid #573a2e;
         border-width: 2px;
@@ -466,7 +531,7 @@
 
     .possibleCell {
         display: flex;
-        width: 150px;
+        height: calc(20vh - 15px);
         aspect-ratio: 1;
         border: solid #573a2e;
         border-width: 2px;
@@ -476,7 +541,7 @@
 
     .selectedCell {
         display: flex;
-        width: 150px;
+        height: calc(20vh - 15px);
         aspect-ratio: 1;
         border: solid #573a2e;
         border-width: 2px;
@@ -517,35 +582,43 @@
     .wall {
         width: 50%;
         aspect-ratio: 1.25;
+        border: solid black;
+        border-width: 0.5px;
     }
 
     .road {
         width: 90%;
-        height: 10px;
+        height: calc((20vh - 15px)/13);
+        border: solid black;
+        border-width: 0.5px;
     }
 
     .pyramid {
         width: 75%;
-        height: 25px;
+        height: calc((20vh - 15px)/6);
         border-top-right-radius: 25px;
         border-top-left-radius: 25px;
+        border: solid black;
+        border-width: 0.5px;
     }
 
     .selected_wall {
         width: 50%;
         aspect-ratio: 1.25;
+        border: solid black;
+        border-width: 2px;
     }
 
     .selected_road {
         width: 90%;
-        height: 10px;
+        height: calc((20vh - 15px)/13);
         border: solid black;
         border-width: 2px;
     }
 
     .selected_pyramid {
         width: 75%;
-        height: 25px;
+        height: calc((20vh - 15px)/6);
         border-top-right-radius: 25px;
         border-top-left-radius: 25px;
         border: solid black;

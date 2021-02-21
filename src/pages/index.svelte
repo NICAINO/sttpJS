@@ -5,11 +5,26 @@
     import Engine from './Engine.svelte'
     let players
     let activePlayer;
+    let movingStack = [];
+    let winner;
 </script>
+{#if winner}
+<p>winner: {winner}</p>
+{:else}
 <body>
     <div style="display: flex; align-items: flex-start; flex-direction: column;">
-        <div class="header">
-            VOMB
+        <div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%; align-items: center;">
+            <div class="header">
+                VOMB
+            </div>
+            <div style="width: 10vh; display: flex; flex-direction: column-reverse;">
+                {#each movingStack as piece}
+                    <div 
+                        class={piece.type} 
+                        style="background-color: {piece.color};"
+                    />
+                {/each}
+            </div>
         </div>
         <div style="width: 100%;">
         {#if activePlayer}
@@ -28,7 +43,7 @@
         {/if}
         </div>
     </div>
-    <Engine bind:currentPlayer={activePlayer} bind:players={players}/>
+    <Engine bind:currentPlayer={activePlayer} bind:players={players} bind:movingStack={movingStack} bind:winner={winner}/>
     <div style="display: flex; align-items: center; flex-direction: column;">
         {#if activePlayer}
             <h3>Stukken </h3>
@@ -37,6 +52,7 @@
     </div>
 
 </body>
+{/if}
 
 
 <style>
@@ -71,6 +87,29 @@
         padding: 20px;
         text-transform: uppercase;
         text-align: center;
+    }
+
+    .wall {
+        width: 50%;
+        aspect-ratio: 1.25;
+        border: solid black;
+        border-width: 0.5px;
+    }
+
+    .road {
+        width: 90%;
+        height: calc((20vh - 15px)/13);
+        border: solid black;
+        border-width: 0.5px;
+    }
+
+    .pyramid {
+        width: 75%;
+        height: calc((20vh - 15px)/6);
+        border-top-right-radius: 25px;
+        border-top-left-radius: 25px;
+        border: solid black;
+        border-width: 0.5px;
     }
 
 </style>
