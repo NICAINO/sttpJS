@@ -101,7 +101,7 @@ const detPossibleMoves = (grid) => {
                 move: true,
                 location: i
             })
-        } else {
+        } else if (cell.length !== 2) {
             possibleMoves.push({
                 place: false,
                 move: true,
