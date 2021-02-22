@@ -434,8 +434,8 @@
     const callAi = async(oldGrid) => {
         let newGrid = await main(oldGrid, currentPlayer)
         console.log(newGrid)
-        $grid = newGrid
-        endTurn()
+        //$grid = newGrid
+        //endTurn()
     }
 
 </script>

@@ -1,11 +1,12 @@
 //AI functie
 
-export const main = async(oldGrid,currentPlayer) => {
+export const main = async(oldGrid, currentPlayer) => {
     let gridArray = toArray(oldGrid)
     let possibleMoves = detPossibleMoves(gridArray)
+    let movableStacks = detMovableStacks(gridArray, currentPlayer)
     let newArrayGrid = detMove(possibleMoves, gridArray, currentPlayer)
     let newGrid = toGrid(newArrayGrid)
-    //console.log(newGrid)
+    console.log(movableStacks)
     return newGrid
 }
 
@@ -72,11 +73,11 @@ const calcXY = (i) => {
     return [x, y]
 }
 
-const placePiece = (gridArray, location , currentPlayer) => {
+const placePiece = (gridArray, location , currentPlayer, type) => {
     let xy = calcXY(location)
     let array = [ ...gridArray]
     array[location] = [{
-        type: "road",
+        type: type,
         color: currentPlayer.color,
         location: {
             x: xy[0],
@@ -108,10 +109,22 @@ const detPossibleMoves = (grid) => {
             })
         }
     })
+    return possibleMoves
+}
 
-    
-    return possibleMoves    
-};
+    const detMovableStacks = (gridArray, currentPlayer) => {
+        let movableStacks = []
+        gridArray.forEach((cell, i) => {
+            if (cell[0]) {
+                if (cell[cell.length-1].color === currentPlayer.color) {
+                    movableStacks.push({
+                        location: i
+                    })
+                }
+            }
+        })
+        return movableStacks
+    }
 
 const detMove = (possibleMoves, gridArray, currentPlayer) => {
     let chosenMove = {
@@ -121,7 +134,7 @@ const detMove = (possibleMoves, gridArray, currentPlayer) => {
     let newGrid;
     possibleMoves.forEach((move, i) => {
         if (move.place === true) {
-            let testGrid = placePiece(gridArray, move.location, currentPlayer)
+            let testGrid = placePiece(gridArray, move.location, currentPlayer, 'road')
             let testEval = calcEvaluation(testGrid, currentPlayer.color)
             if (testEval >= chosenMove.eval) {
                 newGrid = testGrid
@@ -132,10 +145,6 @@ const detMove = (possibleMoves, gridArray, currentPlayer) => {
     })
     console.log(chosenMove.eval)
     return newGrid
-}
-
-const checkPossibleCells = () => {
-
 }
 
 const calcEvaluation = (gridArray, color) => {
