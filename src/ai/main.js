@@ -4,10 +4,11 @@ export const main = async(oldGrid, currentPlayer) => {
     let gridArray = toArray(oldGrid)
     let possibleMoves = detPossibleMoves(gridArray)
     let movableStacks = detMovableStacks(gridArray, currentPlayer)
-    let newArrayGrid = detMove(possibleMoves, gridArray, currentPlayer)
-    let newGrid = toGrid(newArrayGrid)
-    console.log(movableStacks)
-    return newGrid
+    let vo = calcEvaluation(gridArray, currentPlayer.color)
+    //let newArrayGrid = detMove(possibleMoves, gridArray, currentPlayer)
+    //let newGrid = toGrid(newArrayGrid)
+    console.log('Movable stacks', movableStacks)
+    //return newGrid
 }
 
 const toArray = (grid) => {
@@ -147,44 +148,132 @@ const detMove = (possibleMoves, gridArray, currentPlayer) => {
     return newGrid
 }
 
-const calcEvaluation = (gridArray, color) => {
-    const squareWorth = [10,20,30,20,10,20,30,40,30,20,30,40,50,40,30,20,30,40,30,20,10,20,30,20,10]
-    let evalWhite = 0;
-    let evalBlack = 0;
-    gridArray.forEach((cell, i) => {
-        let top = cell[cell.length - 1]
-        cell.forEach((piece) => {
-            //white
-            if (piece === top && piece.color === '#f8dfa1') {
-                //jouw piece bovenaan
-                evalWhite += squareWorth[i]*10
-            } else if (piece !== top && piece.color === '#f8dfa1') {
-                //jouw piece in jouw array
-                evalWhite += squareWorth[i]*5
-            } else if (piece !== top && piece.color !== '#f8dfa1') {
-                //niet jouw piece in jouw array
-                evalWhite += squareWorth[i]
+const calcTopEvaluation = (topCells) => {
+    let value = 0;
+    let counted = 0;
+    let loops = 0;
+    topCells.forEach(topPiece => {
+        let pieceValue = 0;
+        counted += 1
+        //up
+        for (let i = topPiece.location.y-1; i >= 0; i--) {
+            let succes = false;
+            for (let j = 0; j < topCells.length; j++) {
+                loops += 1
+                if (topPiece.location.x === topCells[j].location.x && topPiece.color === topCells[j].color && topCells[j].location.y === i) {
+                    pieceValue += 1
+                    succes = true
+                }
+                if (succes === true) {
+                    break
+                }
             }
+        }
+        //down
+        for (let i = topPiece.location.y+1; i < 5; i++) {
+            let succes = false;
+            for (let j = 0; j < topCells.length; j++) {
+                loops += 1
+                if (topPiece.location.x === topCells[j].location.x && topPiece.color === topCells[j].color && topCells[j].location.y === i) {
+                    pieceValue += 1
+                    succes = true
+                }
+                if (succes === true) {
+                    break
+                }
+            }
+        }
+        //left
+        for (let i = topPiece.location.x-1; i >= 0; i--) {
+            let succes = false;
+            for (let j = 0; j < topCells.length; j++) {
+                loops += 1
+                if (topPiece.location.y === topCells[j].location.y && topPiece.color === topCells[j].color && topCells[j].location.x === i) {
+                    pieceValue += 1
+                    succes = true
+                }
+                if (succes === true) {
+                    break
+                }
+            }
+        }
+        //right
+        for (let i = topPiece.location.x+1; i < 5; i++) {
+            let succes = false;
+            for (let j = 0; j < topCells.length; j++) {
+                loops += 1
+                if (topPiece.location.y === topCells[j].location.y && topPiece.color === topCells[j].color && topCells[j].location.x === i) {
+                    pieceValue += 1
+                    succes = true
+                }
+                if (succes === true) {
+                    break
+                }
+            }
+        }
+        //Als het maar 1 piece is
+        if (pieceValue === 0) {
+            value += 1
+        } else value += pieceValue
+    })
+    console.log('counted: ', counted, ' for ', topCells[0].color, ' in ', loops, ' loops')
+    return value
+}
 
-            //black
-            if (piece === top && piece.color === '#55342b') {
+const calcStackEvaluation = (gridArray, color) => {
+    const squareWorth = [10,20,30,20,10,20,30,40,30,20,30,40,50,40,30,20,30,40,30,20,10,20,30,20,10]
+    let value = 0;
+    let counted = 0;
+    let loops = 0;
+    let top;
+    gridArray.forEach((cell, i) => {
+        loops += 1
+        if (cell[cell.length - 1] !== undefined) {
+            top = cell[cell.length - 1]
+        }
+        cell.forEach(piece => {
+            counted += 1
+            loops += 1
+            if (piece === top && piece.color === color) {
                 //jouw piece bovenaan
-                evalBlack += squareWorth[i]*10
-            } else if (piece !== top && piece.color === '#55342b') {
+                value += squareWorth[i]*10
+            } else if (piece !== top && piece.color === color) {
                 //jouw piece in jouw array
-                evalBlack += squareWorth[i]*5
-            } else if (piece !== top && piece.color !== '#55342b') {
+                value += squareWorth[i]*5
+            } else if (piece !== top && piece.color !== color) {
                 //niet jouw piece in jouw array
-                evalBlack += squareWorth[i]
+                value += squareWorth[i]
             }
         })
     })
-    //console.log("EvalWhite: ", evalWhite, "EvalBlack: ", evalBlack)
+    console.log('Counted ', counted, ' for ', color, ' with ', loops, ' computations')
+    return value
+}
+
+const calcEvaluation = (gridArray, color) => {
+    let topCellsWhite = []
+    let topCellsBlack = []
+    gridArray.forEach(cell => {
+        let top = cell[cell.length - 1]
+        if (top !== undefined) {
+            if (top.color === '#f8dfa1') {
+                topCellsWhite.push(top)
+            } else {
+                topCellsBlack.push(top)
+            }
+        }
+    })
+    let stackEvalWhite = calcStackEvaluation(gridArray, '#f8dfa1')
+    let stackEvalBlack = calcStackEvaluation(gridArray, '#55342b')
+    let topEvalWhite = calcTopEvaluation(topCellsWhite)
+    let topEvalBlack = calcTopEvaluation(topCellsBlack)
+    console.log('topEvalWhite: ', topEvalWhite, 'topEvalBlack: ', topEvalBlack)
+    console.log('stackEvalWhite: ', stackEvalWhite, 'stackEvalBlack: ', stackEvalBlack)
     let netEval = 0;
     if (color === '#f8dfa1') {
-        netEval = evalWhite - evalBlack
+        netEval = topEvalWhite - topEvalBlack
     } else {
-        netEval = evalBlack - evalWhite
+        netEval = topEvalBlack - topEvalWhite
     }
     return netEval
 }
