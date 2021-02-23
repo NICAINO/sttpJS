@@ -3,12 +3,12 @@
 export const main = async(oldGrid, currentPlayer) => {
     let gridArray = toArray(oldGrid)
     let possibleMoves = detPossibleMoves(gridArray)
-    let movableStacks = detMovableStacks(gridArray, currentPlayer)
-    let vo = calcEvaluation(gridArray, currentPlayer.color)
-    //let newArrayGrid = detMove(possibleMoves, gridArray, currentPlayer)
-    //let newGrid = toGrid(newArrayGrid)
-    console.log('Movable stacks', movableStacks)
-    //return newGrid
+    //let movableStacks = detMovableStacks(gridArray, currentPlayer)
+    //let vo = calcEvaluation(gridArray, currentPlayer.color)
+    let newArrayGrid = detMove(possibleMoves, gridArray, currentPlayer)
+    let newGrid = toGrid(newArrayGrid)
+    //console.log('Movable stacks', movableStacks)
+    return newGrid
 }
 
 const toArray = (grid) => {
@@ -144,7 +144,6 @@ const detMove = (possibleMoves, gridArray, currentPlayer) => {
             }
         }
     })
-    console.log(chosenMove.eval)
     return newGrid
 }
 
@@ -216,7 +215,10 @@ const calcTopEvaluation = (topCells) => {
             value += 1
         } else value += pieceValue
     })
-    console.log('counted: ', counted, ' for ', topCells[0].color, ' in ', loops, ' loops')
+    //Als er nog geen piece is neergezet
+    // if (topCells.length !== 0) {
+    //     console.log('counted: ', counted, ' for ', topCells[0].color, ' in ', loops, ' loops')
+    // }
     return value
 }
 
@@ -246,7 +248,7 @@ const calcStackEvaluation = (gridArray, color) => {
             }
         })
     })
-    console.log('Counted ', counted, ' for ', color, ' with ', loops, ' computations')
+    //console.log('Counted ', counted, ' for ', color, ' with ', loops, ' computations')
     return value
 }
 
@@ -267,14 +269,19 @@ const calcEvaluation = (gridArray, color) => {
     let stackEvalBlack = calcStackEvaluation(gridArray, '#55342b')
     let topEvalWhite = calcTopEvaluation(topCellsWhite)
     let topEvalBlack = calcTopEvaluation(topCellsBlack)
-    console.log('topEvalWhite: ', topEvalWhite, 'topEvalBlack: ', topEvalBlack)
-    console.log('stackEvalWhite: ', stackEvalWhite, 'stackEvalBlack: ', stackEvalBlack)
+    //console.log('topEvalWhite: ', topEvalWhite, 'topEvalBlack: ', topEvalBlack)
+    //console.log('stackEvalWhite: ', stackEvalWhite, 'stackEvalBlack: ', stackEvalBlack)
+
+    let netEvalWhite = stackEvalWhite * topEvalWhite
+    let netEvalBlack = stackEvalBlack * topEvalBlack
+
     let netEval = 0;
     if (color === '#f8dfa1') {
-        netEval = topEvalWhite - topEvalBlack
+        netEval = netEvalWhite - netEvalBlack
     } else {
-        netEval = topEvalBlack - topEvalWhite
+        netEval = netEvalBlack - netEvalWhite
     }
+
     return netEval
 }
 

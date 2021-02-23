@@ -25,7 +25,7 @@
 
     export let winner = undefined;
     export let movingStack = []
-    export const maxHeigth = 2
+    export const maxHeigth = 1
     export let players = {
         player1: {
             name:"Gonnoe Garfield",
@@ -433,9 +433,9 @@
 
     const callAi = async(oldGrid) => {
         let newGrid = await main(oldGrid, currentPlayer)
-        //console.log(newGrid)
-        //$grid = newGrid
-        //endTurn()
+        console.log(newGrid)
+        $grid = newGrid
+        endTurn()
     }
 
 </script>
