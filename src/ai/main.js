@@ -151,13 +151,14 @@ const calcPathEvaluation = (topCells) => {
     console.log('vo: ', topCells)
     let value = 0;
     topCells.forEach(piece => {
+        console.log('wtfffffff: ', topCells)
         let connectedCells = []
-        let checkedPiece;
+        let checkedPiece = {location: {x: -1, y: -1}}
         let succes = true;
         let checkingPiece = piece
         while (succes === true) {
             let prevCheckingPiece = checkingPiece
-            console.log('Ik kom van ', checkedPiece, 'en ging naar ', checkingPiece)
+            console.log('Ik kom van ', checkedPiece.location.x,checkedPiece.location.y, 'en ging naar ', checkingPiece.location.x, checkingPiece.location.y)
             for (let i = 0; i < topCells.length; i++) {
                 if (checkingPiece.location.x - 1 === topCells[i].location.x && checkingPiece.location.y === topCells[i].location.y && checkedPiece !== topCells[i]) {
                     console.log('Ik ga links')
@@ -341,7 +342,7 @@ const calcEvaluation = (gridArray, color) => {
     let topEvalWhite = calcTopEvaluation(topCellsWhite)
     let topEvalBlack = calcTopEvaluation(topCellsBlack)
     console.log('wtkk: ', topCellsWhite)
-    //let pathEvalWhite = calcPathEvaluation(topCellsWhite)
+    let pathEvalWhite = calcPathEvaluation(topCellsWhite)
     //let pathEvalBlack = calcPathEvaluation(topCellsBlack)
     console.log('topEvalWhite: ', topEvalWhite, 'topEvalBlack: ', topEvalBlack)
     console.log('stackEvalWhite: ', stackEvalWhite, 'stackEvalBlack: ', stackEvalBlack)
