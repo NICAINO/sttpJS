@@ -278,7 +278,6 @@ const calcTopEvaluation = (topCells) => {
                 }
             }
         }
-
         //Als het maar 1 piece is
         if (pieceValue === 0) {
             value += 1
@@ -337,12 +336,12 @@ const calcEvaluation = (gridArray, color) => {
             }
         }
     })
-    console.log('wtkk: ', topCellsWhite)
     let stackEvalWhite = calcStackEvaluation(gridArray, '#f8dfa1')
     let stackEvalBlack = calcStackEvaluation(gridArray, '#55342b')
     let topEvalWhite = calcTopEvaluation(topCellsWhite)
     let topEvalBlack = calcTopEvaluation(topCellsBlack)
-    //let pathEvalWhite = calcPathEvaluation(topCellsWhite) \
+    console.log('wtkk: ', topCellsWhite)
+    //let pathEvalWhite = calcPathEvaluation(topCellsWhite)
     //let pathEvalBlack = calcPathEvaluation(topCellsBlack)
     console.log('topEvalWhite: ', topEvalWhite, 'topEvalBlack: ', topEvalBlack)
     console.log('stackEvalWhite: ', stackEvalWhite, 'stackEvalBlack: ', stackEvalBlack)
