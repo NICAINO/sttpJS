@@ -8,9 +8,7 @@
     let movingStack = [];
     let winner;
 </script>
-{#if winner}
-<p>winner: {winner}</p>
-{:else}
+
 <body>
     <div style="display: flex; align-items: flex-start; flex-direction: column;">
         <div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%; align-items: center;">
@@ -52,7 +50,6 @@
     </div>
 
 </body>
-{/if}
 
 
 <style>
