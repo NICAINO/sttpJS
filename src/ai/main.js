@@ -342,7 +342,7 @@ const calcEvaluation = (gridArray, color) => {
     let stackEvalBlack = calcStackEvaluation(gridArray, '#55342b')
     let topEvalWhite = calcTopEvaluation(topCellsWhite)
     let topEvalBlack = calcTopEvaluation(topCellsBlack)
-    //let pathEvalWhite = calcPathEvaluation(topCellsWhite)
+    //let pathEvalWhite = calcPathEvaluation(topCellsWhite) \
     //let pathEvalBlack = calcPathEvaluation(topCellsBlack)
     console.log('topEvalWhite: ', topEvalWhite, 'topEvalBlack: ', topEvalBlack)
     console.log('stackEvalWhite: ', stackEvalWhite, 'stackEvalBlack: ', stackEvalBlack)
