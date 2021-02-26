@@ -114,20 +114,6 @@ const detPossibleMoves = (grid) => {
     return possibleMoves
 }
 
-    const detMovableStacks = (gridArray, currentPlayer) => {
-        let movableStacks = []
-        gridArray.forEach((cell, i) => {
-            if (cell[0]) {
-                if (cell[cell.length-1].color === currentPlayer.color) {
-                    movableStacks.push({
-                        location: i
-                    })
-                }
-            }
-        })
-        return movableStacks
-    }
-
 const detMove = (possibleMoves, gridArray, currentPlayer) => {
     let chosenMove = {
         index: undefined,
@@ -138,8 +124,8 @@ const detMove = (possibleMoves, gridArray, currentPlayer) => {
         if (move.place === true) {
             let testGrid = placePiece(gridArray, move.location, currentPlayer, 'road')
             let testEval = calcEvaluation(testGrid, currentPlayer.color)
-            console.log('test: ', testGrid)
             if (testEval >= chosenMove.eval) {
+                console.log('vo')
                 newGrid = testGrid
                 chosenMove.index = i
                 chosenMove.eval = testEval
@@ -149,14 +135,16 @@ const detMove = (possibleMoves, gridArray, currentPlayer) => {
     return newGrid
 }
 
-const calcPathEvaluation = (topCells) => {
+const calcPathEvaluation = (topCells, color) => {
     let value = 0;
     let loops = 0;
+    let regions = 0;
     topCells.forEach(piece => {
+        regions += 1;
         let checkedCells = [];
         let succes = true;
         let checkingPiece = piece;
-        while (succes === true) {
+        while (succes === true && checkingPiece !== undefined) {
             let step = false;
             let prevCheckingPiece = checkingPiece;
             for (let i = 0; i < topCells.length; i++) {
@@ -219,9 +207,12 @@ const calcPathEvaluation = (topCells) => {
         });
         let xDiff = xMax - xMin + 1;
         let yDiff = yMax - yMin + 1;
-        value += Math.floor(Math.sqrt(xDiff**2+yDiff**2))
+        value += Math.floor(Math.sqrt(xDiff**2+yDiff**2)*10)/10
     });
-    console.log('Counted a multiplication of', value, 'in', loops, 'loops')
+    if (regions !== 0) {
+        value = value/regions
+    }
+    console.log('Counted a mult of', value, 'over', regions, 'regions for', color,'in', loops, 'loops')
     return value
 };
 
@@ -251,39 +242,38 @@ const calcStackEvaluation = (gridArray, color) => {
             }
         })
     })
-    console.log('Counted ', counted, ' for ', color, ' with ', loops, ' computations')
+    console.log('Counted ', counted, 'pieces, worth', value, 'for', color, ' with ', loops, ' comps')
     return value
 }
 
-const calcEvaluation = async(gridArray, color) => {
-    let topCellsWhite = []
-    let topCellsBlack = []
+const calcEvaluation = (gridArray, color) => {
+    let topCellsWhite = [];
+    let topCellsBlack = [];
     gridArray.forEach(cell => {
-        let top = cell[cell.length - 1]
+        let top = cell[cell.length - 1];
         if (top !== undefined) {
             if (top.color === '#f8dfa1') {
                 topCellsWhite.push(top)
             } else {
                 topCellsBlack.push(top)
-            }
-        }
-    })
-    let stackEvalWhite = calcStackEvaluation(gridArray, '#f8dfa1')
-    let stackEvalBlack = calcStackEvaluation(gridArray, '#55342b')
-    let pathEvalWhite = calcPathEvaluation(topCellsWhite)
-    let pathEvalBlack = calcPathEvaluation(topCellsBlack)
-    console.log('pathEvalWhite: ', pathEvalWhite, 'pathEvalBlack: ', pathEvalBlack)
-    console.log('stackEvalWhite: ', stackEvalWhite, 'stackEvalBlack: ', stackEvalBlack)
+            };
+        };
+    });
+    let stackEvalWhite = calcStackEvaluation(gridArray, '#f8dfa1');
+    let stackEvalBlack = calcStackEvaluation(gridArray, '#55342b');
+    let pathEvalWhite = calcPathEvaluation(topCellsWhite, '#f8dfa1');
+    let pathEvalBlack = calcPathEvaluation(topCellsBlack, '#55342b');
 
-    let netEvalWhite = stackEvalWhite * pathEvalWhite
-    let netEvalBlack = stackEvalBlack * pathEvalBlack
+    let netEvalWhite = stackEvalWhite * pathEvalWhite;
+    let netEvalBlack = stackEvalBlack * pathEvalBlack;
 
     let netEval = 0;
     if (color === '#f8dfa1') {
-        netEval = netEvalWhite - netEvalBlack
+        netEval = netEvalWhite - netEvalBlack;
     } else {
-        netEval = netEvalBlack - netEvalWhite
-    }
+        netEval = netEvalBlack - netEvalWhite;
+    };
+    console.log('The netEval for', color, 'is', netEval)
 
     return netEval
-}
+};
