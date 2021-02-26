@@ -4,11 +4,11 @@ export const main = async(oldGrid, currentPlayer) => {
     let gridArray = toArray(oldGrid)
     let possibleMoves = detPossibleMoves(gridArray)
     //let movableStacks = detMovableStacks(gridArray, currentPlayer)
-    let vo = calcEvaluation(gridArray, currentPlayer.color)
-    //let newArrayGrid = detMove(possibleMoves, gridArray, currentPlayer)
-    //let newGrid = toGrid(newArrayGrid)
+    //let vo = calcEvaluation(gridArray, currentPlayer.color)
+    let newArrayGrid = detMove(possibleMoves, gridArray, currentPlayer)
+    let newGrid = toGrid(newArrayGrid)
     //console.log('Movable stacks', movableStacks)
-    //return newGrid
+    return newGrid
 }
 
 const toArray = (grid) => {
@@ -74,7 +74,7 @@ const calcXY = (i) => {
     return [x, y]
 }
 
-const placePiece = (gridArray, location , currentPlayer, type) => {
+const placePiece = (gridArray, location, currentPlayer, type) => {
     let xy = calcXY(location)
     let array = [ ...gridArray]
     array[location] = [{
@@ -102,14 +102,15 @@ const detPossibleMoves = (grid) => {
                 move: true,
                 location: i
             })
-        } else if (cell.length !== 2) {
-            possibleMoves.push({
-                place: false,
-                move: true,
-                location: i
-            })
+        // } else if (cell.length !== 2) {
+        //     possibleMoves.push({
+        //         place: false,
+        //         move: true,
+        //         location: i
+        //     })
         }
     })
+    console.log('pM: ', possibleMoves)
     return possibleMoves
 }
 
@@ -137,6 +138,7 @@ const detMove = (possibleMoves, gridArray, currentPlayer) => {
         if (move.place === true) {
             let testGrid = placePiece(gridArray, move.location, currentPlayer, 'road')
             let testEval = calcEvaluation(testGrid, currentPlayer.color)
+            console.log('test: ', testGrid)
             if (testEval >= chosenMove.eval) {
                 newGrid = testGrid
                 chosenMove.index = i
@@ -148,150 +150,80 @@ const detMove = (possibleMoves, gridArray, currentPlayer) => {
 }
 
 const calcPathEvaluation = (topCells) => {
-    console.log('vo: ', topCells)
     let value = 0;
-    topCells.forEach(piece => {
-        console.log('wtfffffff: ', topCells)
-        let connectedCells = []
-        let checkedPiece = {location: {x: -1, y: -1}}
-        let succes = true;
-        let checkingPiece = piece
-        while (succes === true) {
-            let prevCheckingPiece = checkingPiece
-            console.log('Ik kom van ', checkedPiece.location.x,checkedPiece.location.y, 'en ging naar ', checkingPiece.location.x, checkingPiece.location.y)
-            for (let i = 0; i < topCells.length; i++) {
-                if (checkingPiece.location.x - 1 === topCells[i].location.x && checkingPiece.location.y === topCells[i].location.y && checkedPiece !== topCells[i]) {
-                    console.log('Ik ga links')
-                    checkedPiece = checkingPiece
-                    checkingPiece = topCells[i]
-                    break
-                } else if (checkingPiece.location.x + 1 === topCells[i].location.x && checkingPiece.location.y === topCells[i].location.y && checkedPiece !== topCells[i]) {
-                    console.log('Ik ga links')
-                    checkedPiece = checkingPiece
-                    checkingPiece = topCells[i]
-                    break
-                } else if (checkingPiece.location.y - 1 === topCells[i].location.y && checkingPiece.location.x === topCells[i].location.x && checkedPiece !== topCells[i]) {
-                    console.log('Ik ga links')
-                    checkedPiece = checkingPiece
-                    checkingPiece = topCells[i]
-                    break
-                } else if (checkingPiece.location.y + 1 === topCells[i].location.y && checkingPiece.location.x === topCells[i].location.x && checkedPiece !== topCells[i]) {
-                    console.log('Ik ga links')
-                    checkedPiece = checkingPiece
-                    checkingPiece = topCells[i]
-                    break
-                } else if (checkedPiece === topCells[i]) {
-                    console.log('Ik ga terug')
-                    checkedPiece = checkingPiece
-                    checkingPiece = topCells[i]
-                    let j = topCells.indexOf(checkingPiece)
-                    topCells.splice(j, 1)
-                } else if (checkingPiece === prevCheckingPiece) {
-                    console.log("Iedereen haat me")
-                    succes = false
-                }
-            }
-        }
-        console.log('connected: ', connectedCells)
-    })
-    console.log('value: ', value)
-}
-
-const calcTopEvaluation = (topCells) => {
-    let value = 0;
-    let counted = 0;
     let loops = 0;
-    topCells.forEach(topPiece => {
-        let pieceValue = 0;
-        let added = 0;
-        counted += 1
-        //up
-        for (let i = topPiece.location.y-1; i >= 0; i--) {
-            let succes = false;
-            for (let j = 0; j < topCells.length; j++) {
+    topCells.forEach(piece => {
+        let checkedCells = [];
+        let succes = true;
+        let checkingPiece = piece;
+        while (succes === true) {
+            let step = false;
+            let prevCheckingPiece = checkingPiece;
+            for (let i = 0; i < topCells.length; i++) {
                 loops += 1
-                if (topPiece.location.x === topCells[j].location.x && topPiece.color === topCells[j].color && topCells[j].location.y === i) {
-                    added += 1
-                    succes = true
-                }
-                if (succes === true) {
+                if (checkingPiece.location.x - 1 === topCells[i].location.x && checkingPiece.location.y === topCells[i].location.y && checkedCells.includes(topCells[i]) === false) {
+                    checkedCells.push(checkingPiece);
+                    checkingPiece = topCells[i];
+                    step = true;
                     break
-                }
-            }
-        }
-        if (added === 4) {
-            pieceValue += 1000
-        } else {
-            pieceValue += added
-        }
-        //down
-        added = 0;
-        for (let i = topPiece.location.y+1; i < 5; i++) {
-            let succes = false;
-            for (let j = 0; j < topCells.length; j++) {
-                loops += 1
-                if (topPiece.location.x === topCells[j].location.x && topPiece.color === topCells[j].color && topCells[j].location.y === i) {
-                    added += 1
-                    succes = true
-                }
-                if (succes === true) {
+                } else if (checkingPiece.location.y - 1 === topCells[i].location.y && checkingPiece.location.x === topCells[i].location.x && checkedCells.includes(topCells[i]) === false) {
+                    checkedCells.push(checkingPiece);
+                    checkingPiece = topCells[i];
+                    step = true;
                     break
-                }
-            }
-        }
-        if (added === 4) {
-            pieceValue += 1000
-        } else {
-            pieceValue += added
-        }
-        //left
-        added = 0;
-        for (let i = topPiece.location.x-1; i >= 0; i--) {
-            let succes = false;
-            for (let j = 0; j < topCells.length; j++) {
-                loops += 1
-                if (topPiece.location.y === topCells[j].location.y && topPiece.color === topCells[j].color && topCells[j].location.x === i) {
-                    added += 1
-                    succes = true
-                }
-                if (succes === true) {
+                } else if (checkingPiece.location.x + 1 === topCells[i].location.x && checkingPiece.location.y === topCells[i].location.y && checkedCells.includes(topCells[i]) === false) {
+                    checkedCells.push(checkingPiece);
+                    checkingPiece = topCells[i];
+                    step = true;
                     break
-                }
-            }
-        }
-        if (added === 4) {
-            pieceValue += 1000
-        } else {
-            pieceValue += added
-        }
-        //right
-        added = 0;
-        for (let i = topPiece.location.x+1; i < 5; i++) {
-            let succes = false;
-            for (let j = 0; j < topCells.length; j++) {
-                loops += 1
-                if (topPiece.location.y === topCells[j].location.y && topPiece.color === topCells[j].color && topCells[j].location.x === i) {
-                    added += 1
-                    succes = true
-                }
-                if (succes === true) {
+                } else if (checkingPiece.location.y + 1 === topCells[i].location.y && checkingPiece.location.x === topCells[i].location.x && checkedCells.includes(topCells[i]) === false) {
+                    checkedCells.push(checkingPiece);
+                    checkingPiece = topCells[i];
+                    step = true;
                     break
-                }
-            }
-        }
-        //Als het maar 1 piece is
-        if (pieceValue === 0) {
-            value += 1
-        } else {
-            value += pieceValue
-        }
-    })
-    //Als er nog geen piece is neergezet
-    if (topCells.length !== 0) {
-        console.log('counted: ', counted, ' for ', topCells[0].color, ' in ', loops, ' loops')
-    }
+                };
+            };
+            if (step === false) {
+                for (let i = 0; i < topCells.length; i++) {
+                    loops += 1
+                    if (checkedCells.includes(topCells[i]) && Math.abs(checkingPiece.location.x - topCells[i].location.x) + Math.abs(checkingPiece.location.y - topCells[i].location.y) === 1) {
+                        checkedCells.push(checkingPiece);
+                        topCells.splice(topCells.indexOf(checkingPiece), 1);
+                        checkingPiece = topCells[i];
+                        break
+                    };
+                };
+                if (prevCheckingPiece === checkingPiece) {
+                    checkedCells.push(checkingPiece);
+                    succes = false;
+                };
+            };
+        };
+        let xMin = 5;
+        let yMin = 5;
+        let xMax = 0;
+        let yMax = 0;
+        checkedCells.forEach(piece => {
+            if (piece.location.x > xMax) {
+                xMax = piece.location.x
+            };
+            if (piece.location.x < xMin) {
+                xMin = piece.location.x
+            };
+            if (piece.location.y > yMax) {
+                yMax = piece.location.y
+            };
+            if (piece.location.y < yMin) {
+                yMin = piece.location.y
+            };
+        });
+        let xDiff = xMax - xMin + 1;
+        let yDiff = yMax - yMin + 1;
+        value += Math.floor(Math.sqrt(xDiff**2+yDiff**2))
+    });
+    console.log('Counted a multiplication of', value, 'in', loops, 'loops')
     return value
-}
+};
 
 const calcStackEvaluation = (gridArray, color) => {
     const squareWorth = [10,20,30,20,10,20,30,40,30,20,30,40,50,40,30,20,30,40,30,20,10,20,30,20,10]
@@ -323,14 +255,13 @@ const calcStackEvaluation = (gridArray, color) => {
     return value
 }
 
-const calcEvaluation = (gridArray, color) => {
+const calcEvaluation = async(gridArray, color) => {
     let topCellsWhite = []
     let topCellsBlack = []
     gridArray.forEach(cell => {
         let top = cell[cell.length - 1]
         if (top !== undefined) {
             if (top.color === '#f8dfa1') {
-                console.log('huh: ', top)
                 topCellsWhite.push(top)
             } else {
                 topCellsBlack.push(top)
@@ -339,16 +270,13 @@ const calcEvaluation = (gridArray, color) => {
     })
     let stackEvalWhite = calcStackEvaluation(gridArray, '#f8dfa1')
     let stackEvalBlack = calcStackEvaluation(gridArray, '#55342b')
-    let topEvalWhite = calcTopEvaluation(topCellsWhite)
-    let topEvalBlack = calcTopEvaluation(topCellsBlack)
-    console.log('wtkk: ', topCellsWhite)
     let pathEvalWhite = calcPathEvaluation(topCellsWhite)
-    //let pathEvalBlack = calcPathEvaluation(topCellsBlack)
-    console.log('topEvalWhite: ', topEvalWhite, 'topEvalBlack: ', topEvalBlack)
+    let pathEvalBlack = calcPathEvaluation(topCellsBlack)
+    console.log('pathEvalWhite: ', pathEvalWhite, 'pathEvalBlack: ', pathEvalBlack)
     console.log('stackEvalWhite: ', stackEvalWhite, 'stackEvalBlack: ', stackEvalBlack)
 
-    let netEvalWhite = stackEvalWhite * topEvalWhite
-    let netEvalBlack = stackEvalBlack * topEvalBlack
+    let netEvalWhite = stackEvalWhite * pathEvalWhite
+    let netEvalBlack = stackEvalBlack * pathEvalBlack
 
     let netEval = 0;
     if (color === '#f8dfa1') {
@@ -359,37 +287,3 @@ const calcEvaluation = (gridArray, color) => {
 
     return netEval
 }
-
-// const toString = (grid) => {
-//     let str = ""
-//     let pog = 1
-//     grid.forEach(row => {
-//         row.forEach(cell => {
-//             str += '/' + pog + '{'
-//             pog += 1
-
-//                 if (cell[0]) {
-//                     cell.forEach(piece => {
-//                         if (piece.color === '#f8dfa1') {
-//                             str += piece.type.charAt(0).toUpperCase()
-//                         } else {
-//                             str += piece.type.charAt(0)
-//                         }
-//                     })
-//                 }
-            
-//             str += '}'
-//         })    
-//     });
-//     return str
-// }
-
-
-
-
-//     return ans 
-// }
-
-// const doMove = (grid) => {
-//     console.log(grid)
-// }
