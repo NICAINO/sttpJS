@@ -1,13 +1,14 @@
 //AI functie
 
 export const main = async(oldGrid, currentPlayer) => {
+    console.time('Time')
     let gridArray = toArray(oldGrid)
     let possibleMoves = detPossibleMoves(gridArray)
     //let movableStacks = detMovableStacks(gridArray, currentPlayer)
     //let vo = calcEvaluation(gridArray, currentPlayer.color)
     let newArrayGrid = detMove(possibleMoves, gridArray, currentPlayer)
     let newGrid = toGrid(newArrayGrid)
-    //console.log('Movable stacks', movableStacks)
+    console.timeEnd('Time')
     return newGrid
 }
 
@@ -102,19 +103,13 @@ const detPossibleMoves = (grid) => {
                 move: true,
                 location: i
             })
-        // } else if (cell.length !== 2) {
-        //     possibleMoves.push({
-        //         place: false,
-        //         move: true,
-        //         location: i
-        //     })
         }
     })
-    console.log('pM: ', possibleMoves)
     return possibleMoves
 }
 
 const detMove = (possibleMoves, gridArray, currentPlayer) => {
+    let loops = 0;
     let chosenMove = {
         index: undefined,
         eval: -100000
@@ -123,15 +118,17 @@ const detMove = (possibleMoves, gridArray, currentPlayer) => {
     possibleMoves.forEach((move, i) => {
         if (move.place === true) {
             let testGrid = placePiece(gridArray, move.location, currentPlayer, 'road')
-            let testEval = calcEvaluation(testGrid, currentPlayer.color)
+            let evaluation = calcEvaluation(testGrid, currentPlayer.color)
+                let testEval = evaluation.netEval
+                loops += evaluation.loops
             if (testEval >= chosenMove.eval) {
-                console.log('vo')
                 newGrid = testGrid
                 chosenMove.index = i
                 chosenMove.eval = testEval
             }
         }
     })
+    console.log('For', currentPlayer.color, 'the grid is worth', chosenMove.eval, 'and is calculated in', loops, 'loops')
     return newGrid
 }
 
@@ -212,8 +209,8 @@ const calcPathEvaluation = (topCells, color) => {
     if (regions !== 0) {
         value = value/regions
     }
-    console.log('Counted a mult of', value, 'over', regions, 'regions for', color,'in', loops, 'loops')
-    return value
+    //console.log('Counted a mult of', value, 'over', regions, 'regions for', color,'in', loops, 'loops')
+    return {value, loops}
 };
 
 const calcStackEvaluation = (gridArray, color) => {
@@ -242,11 +239,12 @@ const calcStackEvaluation = (gridArray, color) => {
             }
         })
     })
-    console.log('Counted ', counted, 'pieces, worth', value, 'for', color, ' with ', loops, ' comps')
-    return value
+    //console.log('Counted ', counted, 'pieces, worth', value, 'for', color, ' with ', loops, ' comps')
+    return {value, loops}
 }
 
 const calcEvaluation = (gridArray, color) => {
+    let loops = 0;
     let topCellsWhite = [];
     let topCellsBlack = [];
     gridArray.forEach(cell => {
@@ -260,12 +258,20 @@ const calcEvaluation = (gridArray, color) => {
         };
     });
     let stackEvalWhite = calcStackEvaluation(gridArray, '#f8dfa1');
+        let stackEvalWhiteValue = stackEvalWhite.value;
+        loops += stackEvalWhite.loops;
     let stackEvalBlack = calcStackEvaluation(gridArray, '#55342b');
+        let stackEvalBlackValue = stackEvalBlack.value;
+        loops += stackEvalBlack.loops;
     let pathEvalWhite = calcPathEvaluation(topCellsWhite, '#f8dfa1');
+        let pathEvalWhiteValue = pathEvalWhite.value;
+        loops += pathEvalWhite.loops;
     let pathEvalBlack = calcPathEvaluation(topCellsBlack, '#55342b');
+        let pathEvalBlackValue = pathEvalBlack.value;
+        loops += pathEvalBlack.loops;
 
-    let netEvalWhite = stackEvalWhite * pathEvalWhite;
-    let netEvalBlack = stackEvalBlack * pathEvalBlack;
+    let netEvalWhite = stackEvalWhiteValue * pathEvalWhiteValue;
+    let netEvalBlack = stackEvalBlackValue * pathEvalBlackValue;
 
     let netEval = 0;
     if (color === '#f8dfa1') {
@@ -273,7 +279,7 @@ const calcEvaluation = (gridArray, color) => {
     } else {
         netEval = netEvalBlack - netEvalWhite;
     };
-    console.log('The netEval for', color, 'is', netEval)
+    //console.log('The netEval for', color, 'is', netEval)
 
-    return netEval
+    return {netEval, loops}
 };
