@@ -7,6 +7,10 @@
     let activePlayer;
     let movingStack = [];
     let winner;
+    let evals;
+
+    let netEval;
+    $: if (evals) {netEval = evals[0]-evals[1]}
 </script>
 
 <body>
@@ -37,11 +41,19 @@
             </div>
             <h2>Spelers:</h2>
             <p>- {players.player1.name}</p>
-            <p>- {players.player2.name}</p>     
+            <p>- {players.player2.name}</p>
+            {#if netEval }
+            <p>- Eval: {netEval}</p>
+            {/if}
         {/if}
         </div>
     </div>
-    <Engine bind:currentPlayer={activePlayer} bind:players={players} bind:movingStack={movingStack} bind:winner={winner}/>
+    <Engine 
+    bind:currentPlayer={activePlayer} 
+    bind:players={players} 
+    bind:movingStack={movingStack} 
+    bind:winner={winner} 
+    bind:evals={evals}/>
     <div style="display: flex; align-items: center; flex-direction: column;">
         {#if activePlayer}
             <h3>Stukken </h3>

@@ -5,6 +5,7 @@
     import Pyramid  from '../../components/pieces/Pyramid'
     import { main } from '../ai/main'
     
+    export let evals = [];
     let round = 0;
     let grid_value = [];
     let log_value = [];
@@ -357,15 +358,15 @@
         else 
             {currentPlayer = players.player1}
         updateLog($grid)
-        let win = winChecker(grid_value)
-        if (win !== undefined) {
-            //er heeft iemand gewonnen 
-            console.log("Er heeft iemand gewonnen namelijk: ", win)
-            winner = win
-        }
-        round += 1
-        direction = ''
-        possibleCells = []
+        //let win = winChecker(grid_value)
+        // if (win !== undefined) {
+        //     //er heeft iemand gewonnen 
+        //     console.log("Er heeft iemand gewonnen namelijk: ", win)
+        //     winner = win
+        // }
+        round += 1;
+        direction = '';
+        possibleCells = [];
     }
 
     const undo = () => {
@@ -378,62 +379,68 @@
         $log = [...log_value, JSON.stringify(value)]
     }
 
-    const checkwinx = (grid, y,color) => {
-        let ans = 0;
-        for (let x = 0; x < 5; x++) {
-            if (grid[y][x][grid[y][x].length-1]!== undefined && grid[y][x][grid[y][x].length-1].color === color) {
-                if (grid[y][x][grid[y][x].length-1].win) {
-                    ans += 1 
-                }
-            } else break
-        }
-        return ans
-    }
-    const checkwiny = (grid, x,color) => {
-        let ans = 0;
-        for (let y = 0; y < 5; y++) {
-            if (grid[y][x][grid[y][x].length-1]!== undefined && grid[y][x][grid[y][x].length-1].color ===  color) {
-                if (grid[y][x][grid[y][x].length-1].win) {
-                    ans += 1 
-                }
-            } else break
-        }
-        return ans
-    }
+    // const checkwinx = (grid, y,color) => {
+    //     let ans = 0;
+    //     for (let x = 0; x < 5; x++) {
+    //         if (grid[y][x][grid[y][x].length-1]!== undefined && grid[y][x][grid[y][x].length-1].color === color) {
+    //             if (grid[y][x][grid[y][x].length-1].win) {
+    //                 ans += 1 
+    //             }
+    //         } else break
+    //     }
+    //     return ans
+    // }
+    // const checkwiny = (grid, x,color) => {
+    //     let ans = 0;
+    //     for (let y = 0; y < 5; y++) {
+    //         if (grid[y][x][grid[y][x].length-1]!== undefined && grid[y][x][grid[y][x].length-1].color ===  color) {
+    //             if (grid[y][x][grid[y][x].length-1].win) {
+    //                 ans += 1 
+    //             }
+    //         } else break
+    //     }
+    //     return ans
+    // }
 
-    const winChecker = (grid) => {
-        let whitewin = false;
-        let blackwin = false;
+    // const winChecker = (grid) => {
+    //     let whitewin = false;
+    //     let blackwin = false;
 
-        //loop x
-        for (let i = 0; i < 5; i++) {
-            //wit x
-            if (checkwinx(grid, i,"#f8dfa1") === 5) {
-                whitewin = true
-            };
-            //zwart x
-            if (checkwinx(grid, i,"#55342b") === 5) {
-                blackwin = true
-            };
-        };
-        //loop y 
-        for (let xi = 0; xi < 5; xi++) {
-            if (checkwiny(grid, xi,"#f8dfa1") === 5) {
-                whitewin = true
-            };
-            //zwart x
-            if (checkwiny(grid, xi,"#55342b") === 5) {
-                blackwin = true
-            };
-        };
-        if (whitewin) {return "white"} 
-        else if (blackwin) {return "black"}
-        else return undefined
-    }
+    //     //loop x
+    //     for (let i = 0; i < 5; i++) {
+    //         //wit x
+    //         if (checkwinx(grid, i,"#f8dfa1") === 5) {
+    //             whitewin = true
+    //         };
+    //         //zwart x
+    //         if (checkwinx(grid, i,"#55342b") === 5) {
+    //             blackwin = true
+    //         };
+    //     };
+    //     //loop y 
+    //     for (let xi = 0; xi < 5; xi++) {
+    //         if (checkwiny(grid, xi,"#f8dfa1") === 5) {
+    //             whitewin = true
+    //         };
+    //         //zwart x
+    //         if (checkwiny(grid, xi,"#55342b") === 5) {
+    //             blackwin = true
+    //         };
+    //     };
+    //     if (whitewin) {return "white"} 
+    //     else if (blackwin) {return "black"}
+    //     else return undefined
+    // }
 
     const callAi = async(oldGrid) => {
-        let newGrid = await main(oldGrid, currentPlayer)
-        //console.log(newGrid)
+        let notCurrentPlayerColor = '';
+        if (currentPlayer.color === '#f8dfa1') {
+            notCurrentPlayerColor = '#55342b'
+        } else {
+            notCurrentPlayerColor = '#f8dfa1'
+        }
+        let newGrid = await main(oldGrid, currentPlayer.color, notCurrentPlayerColor)
+        // //console.log(evals)
         $grid = newGrid
         endTurn()
     }

@@ -1,13 +1,16 @@
 //AI functie
-
-export const main = async(oldGrid, currentPlayer) => {
+export const main = async(oldGrid, activePlayer, inactivePlayer) => {
     console.time('Time')
-    let gridArray = toArray(oldGrid)
-    let possibleMoves = detPossibleMoves(gridArray)
-    //let movableStacks = detMovableStacks(gridArray, currentPlayer)
-    //let vo = calcEvaluation(gridArray, currentPlayer.color)
-    let newArrayGrid = detMove(possibleMoves, gridArray, currentPlayer)
-    let newGrid = toGrid(newArrayGrid)
+    let gridArray = toArray(oldGrid);
+    let newArrayGrid = minimax(gridArray, 2, -Infinity, Infinity, true, activePlayer, inactivePlayer)
+    console.log('Vo: ', newArrayGrid)
+    //console.log('Eval: ', calcEvaluation(gridArray, currentPlayer))
+    // let possibleMoves = detPossibleMoves(gridArray);
+    // let move = detMove(possibleMoves, gridArray, currentPlayer);
+    //     let newArrayGrid = move.newGrid;
+    //     let evalWhite = move.evalWhite;
+    //     let evalBlack = move.evalBlack;
+    let newGrid = toGrid(newArrayGrid[1]);
     console.timeEnd('Time')
     return newGrid
 }
@@ -19,7 +22,6 @@ const toArray = (grid) => {
             ans.push(cell)
         })
     });
-    //console.log("New Array: ", ans)
     return ans
 }
 
@@ -75,12 +77,12 @@ const calcXY = (i) => {
     return [x, y]
 }
 
-const placePiece = (gridArray, location, currentPlayer, type) => {
+const placePiece = (gridArray, location, color, type) => {
     let xy = calcXY(location)
     let array = [ ...gridArray]
     array[location] = [{
         type: type,
-        color: currentPlayer.color,
+        color: color,
         location: {
             x: xy[0],
             y: xy[1],
@@ -94,47 +96,58 @@ const placePiece = (gridArray, location, currentPlayer, type) => {
     return array
 }
 
-const detPossibleMoves = (grid) => {
-    let possibleMoves = []
+const detPossibleMoves = (grid, color) => {
+    let possibleMoves = [];
     grid.forEach((cell, i) => {
         if (cell[0] === undefined) {
-            possibleMoves.push({
-                place: true,
-                move: true,
-                location: i
-            })
-        }
-    })
+            let newArray = placePiece(grid, i, color, 'road')
+            possibleMoves.push(newArray)
+        };
+    });
     return possibleMoves
-}
+};
 
-const detMove = (possibleMoves, gridArray, currentPlayer) => {
-    let loops = 0;
-    let chosenMove = {
-        index: undefined,
-        eval: -100000
-    }
-    let newGrid;
-    possibleMoves.forEach((move, i) => {
-        if (move.place === true) {
-            let testGrid = placePiece(gridArray, move.location, currentPlayer, 'road')
-            let evaluation = calcEvaluation(testGrid, currentPlayer.color)
-                let testEval = evaluation.netEval
-                loops += evaluation.loops
-            if (testEval >= chosenMove.eval) {
-                newGrid = testGrid
-                chosenMove.index = i
-                chosenMove.eval = testEval
+const minimax = (currentGrid, depth, alpha, beta, statement, activeColor, inactiveColor) => {
+    let evaluation;
+
+    if (depth === 0) {
+        evaluation = calcEvaluation(currentGrid, inactiveColor)
+        return [evaluation]
+    };
+
+    let possibleMoves = detPossibleMoves(currentGrid, activeColor);
+
+    if (statement) {
+        let maxEval = -Infinity;
+        let move;
+        for (let i = 0; i < possibleMoves.length; i++) {
+            let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, false, inactiveColor, activeColor);
+            if (evalue[0] > maxEval) {
+                maxEval = evalue[0];
+                alpha = evalue[0];
+                move = possibleMoves[i];
             }
-        }
-    })
-    console.log('For', currentPlayer.color, 'the grid is worth', chosenMove.eval, 'and is calculated in', loops, 'loops')
-    return newGrid
-}
+            if (beta <= alpha) {
+                break
+            };
+        };
+        return [maxEval, move]
+    } else {
+        let minEval = Infinity;
+        for (let i = 0; i < possibleMoves.length; i++) {
+            let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, true, activeColor, inactiveColor);
+            minEval = Math.min(minEval, evalue[0]);
+            beta = Math.min(beta, evalue[0]);
+            if (beta <= alpha) {
+                break
+            };
+        };
+        return [minEval]
+    };
+};
 
-const calcPathEvaluation = (topCells, color) => {
+const calcPathEvaluation = (topCells) => {
     let value = 0;
-    let loops = 0;
     let regions = 0;
     topCells.forEach(piece => {
         regions += 1;
@@ -145,7 +158,6 @@ const calcPathEvaluation = (topCells, color) => {
             let step = false;
             let prevCheckingPiece = checkingPiece;
             for (let i = 0; i < topCells.length; i++) {
-                loops += 1
                 if (checkingPiece.location.x - 1 === topCells[i].location.x && checkingPiece.location.y === topCells[i].location.y && checkedCells.includes(topCells[i]) === false) {
                     checkedCells.push(checkingPiece);
                     checkingPiece = topCells[i];
@@ -170,7 +182,6 @@ const calcPathEvaluation = (topCells, color) => {
             };
             if (step === false) {
                 for (let i = 0; i < topCells.length; i++) {
-                    loops += 1
                     if (checkedCells.includes(topCells[i]) && Math.abs(checkingPiece.location.x - topCells[i].location.x) + Math.abs(checkingPiece.location.y - topCells[i].location.y) === 1) {
                         checkedCells.push(checkingPiece);
                         topCells.splice(topCells.indexOf(checkingPiece), 1);
@@ -204,29 +215,28 @@ const calcPathEvaluation = (topCells, color) => {
         });
         let xDiff = xMax - xMin + 1;
         let yDiff = yMax - yMin + 1;
-        value += Math.floor(Math.sqrt(xDiff**2+yDiff**2)*10)/10
+        if (xDiff === 5 || yDiff === 5) {
+            value = 1000
+        } else {
+            value += Math.floor(Math.sqrt(xDiff**2+yDiff**2)*10)/10
+        }
     });
     if (regions !== 0) {
         value = value/regions
     }
     //console.log('Counted a mult of', value, 'over', regions, 'regions for', color,'in', loops, 'loops')
-    return {value, loops}
+    return value
 };
 
 const calcStackEvaluation = (gridArray, color) => {
     const squareWorth = [10,20,30,20,10,20,30,40,30,20,30,40,50,40,30,20,30,40,30,20,10,20,30,20,10]
     let value = 0;
-    let counted = 0;
-    let loops = 0;
     let top;
     gridArray.forEach((cell, i) => {
-        loops += 1
         if (cell[cell.length - 1] !== undefined) {
             top = cell[cell.length - 1]
         }
         cell.forEach(piece => {
-            counted += 1
-            loops += 1
             if (piece === top && piece.color === color) {
                 //jouw piece bovenaan
                 value += squareWorth[i]*10
@@ -240,11 +250,10 @@ const calcStackEvaluation = (gridArray, color) => {
         })
     })
     //console.log('Counted ', counted, 'pieces, worth', value, 'for', color, ' with ', loops, ' comps')
-    return {value, loops}
+    return value
 }
 
 const calcEvaluation = (gridArray, color) => {
-    let loops = 0;
     let topCellsWhite = [];
     let topCellsBlack = [];
     gridArray.forEach(cell => {
@@ -257,18 +266,10 @@ const calcEvaluation = (gridArray, color) => {
             };
         };
     });
-    let stackEvalWhite = calcStackEvaluation(gridArray, '#f8dfa1');
-        let stackEvalWhiteValue = stackEvalWhite.value;
-        loops += stackEvalWhite.loops;
-    let stackEvalBlack = calcStackEvaluation(gridArray, '#55342b');
-        let stackEvalBlackValue = stackEvalBlack.value;
-        loops += stackEvalBlack.loops;
-    let pathEvalWhite = calcPathEvaluation(topCellsWhite, '#f8dfa1');
-        let pathEvalWhiteValue = pathEvalWhite.value;
-        loops += pathEvalWhite.loops;
-    let pathEvalBlack = calcPathEvaluation(topCellsBlack, '#55342b');
-        let pathEvalBlackValue = pathEvalBlack.value;
-        loops += pathEvalBlack.loops;
+    let stackEvalWhiteValue = calcStackEvaluation(gridArray, '#f8dfa1');
+    let stackEvalBlackValue = calcStackEvaluation(gridArray, '#55342b');
+    let pathEvalWhiteValue = calcPathEvaluation(topCellsWhite, '#f8dfa1');
+    let pathEvalBlackValue = calcPathEvaluation(topCellsBlack, '#55342b');
 
     let netEvalWhite = stackEvalWhiteValue * pathEvalWhiteValue;
     let netEvalBlack = stackEvalBlackValue * pathEvalBlackValue;
@@ -281,5 +282,5 @@ const calcEvaluation = (gridArray, color) => {
     };
     //console.log('The netEval for', color, 'is', netEval)
 
-    return {netEval, loops}
+    return netEval
 };
