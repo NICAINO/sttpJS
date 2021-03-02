@@ -216,7 +216,7 @@ const calcPathEvaluation = (topCells) => {
         let xDiff = xMax - xMin + 1;
         let yDiff = yMax - yMin + 1;
         if (xDiff === 5 || yDiff === 5) {
-            console.log('Win')
+            console.log('Win: ', checkedCells)
             value = 10000
         } else {
             value += Math.floor(Math.sqrt(xDiff**2+yDiff**2)*10)/10
