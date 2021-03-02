@@ -2,7 +2,7 @@
 export const main = async(oldGrid, activePlayer, inactivePlayer) => {
     console.time('Time')
     let gridArray = toArray(oldGrid);
-    let newArrayGrid = minimax(gridArray, 2, -Infinity, Infinity, true, activePlayer, inactivePlayer)
+    let newArrayGrid = minimax(gridArray, 2, -Infinity, Infinity, true, activePlayer, activePlayer, inactivePlayer)
     console.log('Vo: ', newArrayGrid)
     //console.log('Eval: ', calcEvaluation(gridArray, currentPlayer))
     // let possibleMoves = detPossibleMoves(gridArray);
@@ -107,21 +107,21 @@ const detPossibleMoves = (grid, color) => {
     return possibleMoves
 };
 
-const minimax = (currentGrid, depth, alpha, beta, statement, activeColor, inactiveColor) => {
+const minimax = (currentGrid, depth, alpha, beta, statement, activePlayerColor, activeColor, inactiveColor) => {
     let evaluation;
 
     if (depth === 0) {
-        evaluation = calcEvaluation(currentGrid, inactiveColor)
+        evaluation = calcEvaluation(currentGrid, activePlayerColor)
         return [evaluation]
     };
 
     let possibleMoves = detPossibleMoves(currentGrid, activeColor);
-
+    //console.log('pm: ', possibleMoves)
     if (statement) {
         let maxEval = -Infinity;
         let move;
         for (let i = 0; i < possibleMoves.length; i++) {
-            let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, false, inactiveColor, activeColor);
+            let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, false, activePlayerColor, inactiveColor, activeColor);
             if (evalue[0] > maxEval) {
                 maxEval = evalue[0];
                 alpha = evalue[0];
@@ -135,7 +135,7 @@ const minimax = (currentGrid, depth, alpha, beta, statement, activeColor, inacti
     } else {
         let minEval = Infinity;
         for (let i = 0; i < possibleMoves.length; i++) {
-            let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, true, activeColor, inactiveColor);
+            let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, true, activePlayerColor, inactiveColor, activeColor);
             minEval = Math.min(minEval, evalue[0]);
             beta = Math.min(beta, evalue[0]);
             if (beta <= alpha) {
@@ -216,7 +216,8 @@ const calcPathEvaluation = (topCells) => {
         let xDiff = xMax - xMin + 1;
         let yDiff = yMax - yMin + 1;
         if (xDiff === 5 || yDiff === 5) {
-            value = 1000
+            console.log('Win')
+            value = 10000
         } else {
             value += Math.floor(Math.sqrt(xDiff**2+yDiff**2)*10)/10
         }
@@ -252,6 +253,23 @@ const calcStackEvaluation = (gridArray, color) => {
     //console.log('Counted ', counted, 'pieces, worth', value, 'for', color, ' with ', loops, ' comps')
     return value
 }
+
+const pcalcEvaluation = (gridArray, color) => {
+    let topCells = [];
+    gridArray.forEach(cell => {
+        let top = cell[cell.length - 1];
+        if (top !== undefined) {
+            if (top.color === color) {
+                topCells.push(top)
+            };
+        };
+    });
+    let stackEvalValue = calcStackEvaluation(gridArray, color);
+    let pathEvalValue = calcPathEvaluation(topCells, color);
+
+    let netEval = stackEvalValue * pathEvalValue;
+    return netEval
+};
 
 const calcEvaluation = (gridArray, color) => {
     let topCellsWhite = [];
