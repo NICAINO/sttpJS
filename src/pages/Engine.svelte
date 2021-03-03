@@ -440,7 +440,7 @@
             notCurrentPlayerColor = '#f8dfa1'
         }
         let newGrid = await main(oldGrid, currentPlayer.color, notCurrentPlayerColor)
-        // //console.log(evals)
+        //console.log(evals)
         $grid = newGrid
         endTurn()
     }
