@@ -111,9 +111,7 @@ const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayer
     let win = calcEvaluation(currentGrid, activePlayerColor, true);
     if (depth === 0 || win === true) {
         let evaluation = calcEvaluation(currentGrid, activePlayerColor, false);
-        if (win === true) {
-            return [evaluation, currentGrid]
-        } else return [evaluation]
+        return [evaluation]
     };
 
     let possibleMoves = detPossibleMoves(currentGrid, activeColor);
@@ -123,6 +121,7 @@ const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayer
         let move;
         for (let i = 0; i < possibleMoves.length; i++) {
             let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, false, activePlayerColor, inactiveColor, activeColor);
+            console.log('Move white:', possibleMoves[i], 'will result in: ', evalue[0])
             if (evalue[0] >= maxEval) {
                 maxEval = evalue[0];
                 alpha = evalue[0];
@@ -137,6 +136,7 @@ const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayer
         let minEval = Infinity;
         for (let i = 0; i < possibleMoves.length; i++) {
             let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, true, activePlayerColor, inactiveColor, activeColor);
+            console.log('Countermove: ', possibleMoves[i], evalue[0])
             minEval = Math.min(minEval, evalue[0]);
             beta = Math.min(beta, evalue[0]);
             if (beta <= alpha) {
@@ -183,15 +183,20 @@ const calcPathEvaluation = (topCells, checkWin) => {
             };
             if (step === false) {
                 for (let i = 0; i < topCells.length; i++) {
-                    if (checkedCells.includes(topCells[i]) && Math.abs(checkingPiece.location.x - topCells[i].location.x) + Math.abs(checkingPiece.location.y - topCells[i].location.y) === 1) {
-                        checkedCells.push(checkingPiece);
-                        topCells.splice(topCells.indexOf(checkingPiece), 1);
+                    if (checkedCells.includes(topCells[i]) && (Math.abs(checkingPiece.location.x - topCells[i].location.x) + Math.abs(checkingPiece.location.y - topCells[i].location.y)) === 1) {
+                        if (checkedCells.includes(checkingPiece) === false) {
+                            checkedCells.push(checkingPiece);
+                        };
+                        let j = topCells.indexOf(checkingPiece);
                         checkingPiece = topCells[i];
+                        topCells.splice(j, 1);
                         break
                     };
                 };
                 if (prevCheckingPiece === checkingPiece) {
-                    checkedCells.push(checkingPiece);
+                    if (checkedCells.includes(checkingPiece) === false) {
+                        checkedCells.push(checkingPiece);
+                    };
                     succes = false;
                 };
             };
@@ -302,7 +307,7 @@ const calcEvaluation = (gridArray, color, checkWin) => {
         if (color === '#f8dfa1') {
             netEval = netEvalWhite - netEvalBlack;
         } else {
-            netEval = netEvalBlack - netEvalWhite;
+            netEval = netEvalBlack - netEvalWhite
         };
         //console.log('The netEval for', color, 'is', netEval)
         return netEval
