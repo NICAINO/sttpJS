@@ -121,8 +121,8 @@ const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayer
         let move;
         for (let i = 0; i < possibleMoves.length; i++) {
             let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, false, activePlayerColor, inactiveColor, activeColor);
-            console.log('Move white:', possibleMoves[i], 'will result in: ', evalue[0])
-            if (evalue[0] >= maxEval) {
+            //console.log('Move white:', possibleMoves[i], 'will result in: ', evalue[0])
+            if (evalue[0] > maxEval) {
                 maxEval = evalue[0];
                 alpha = evalue[0];
                 move = possibleMoves[i];
@@ -136,7 +136,7 @@ const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayer
         let minEval = Infinity;
         for (let i = 0; i < possibleMoves.length; i++) {
             let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, true, activePlayerColor, inactiveColor, activeColor);
-            console.log('Countermove: ', possibleMoves[i], evalue[0])
+            //console.log('Countermove: ', possibleMoves[i], evalue[0])
             minEval = Math.min(minEval, evalue[0]);
             beta = Math.min(beta, evalue[0]);
             if (beta <= alpha) {
