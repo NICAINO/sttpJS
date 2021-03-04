@@ -2,17 +2,17 @@
 export const main = async(oldGrid, activePlayer, inactivePlayer) => {
     console.time('Time')
     let gridArray = toArray(oldGrid);
-    let newArrayGrid = minimax(gridArray, 2, -Infinity, Infinity, true, activePlayer, activePlayer, inactivePlayer)
-    console.log('Vo: ', newArrayGrid)
-    //console.log('Eval: ', calcEvaluation(gridArray, currentPlayer))
+    //let newArrayGrid = minimax(gridArray, 2, -Infinity, Infinity, true, activePlayer, activePlayer, inactivePlayer)
+    //console.log('Vo: ', newArrayGrid)
+    calcEvaluation(gridArray, activePlayer, false)
     // let possibleMoves = detPossibleMoves(gridArray);
     // let move = detMove(possibleMoves, gridArray, currentPlayer);
     //     let newArrayGrid = move.newGrid;
     //     let evalWhite = move.evalWhite;
     //     let evalBlack = move.evalBlack;
-    let newGrid = toGrid(newArrayGrid[1]);
+    //let newGrid = toGrid(newArrayGrid[1]);
     console.timeEnd('Time')
-    return newGrid
+    //return newGrid
 }
 
 const toArray = (grid) => {
@@ -121,7 +121,7 @@ const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayer
         let move;
         for (let i = 0; i < possibleMoves.length; i++) {
             let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, false, activePlayerColor, inactiveColor, activeColor);
-            //console.log('Move white:', possibleMoves[i], 'will result in: ', evalue[0])
+            console.log('Move',activePlayerColor, ':', possibleMoves[i], 'will result in: ', evalue[0])
             if (evalue[0] > maxEval) {
                 maxEval = evalue[0];
                 alpha = evalue[0];
@@ -136,7 +136,7 @@ const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayer
         let minEval = Infinity;
         for (let i = 0; i < possibleMoves.length; i++) {
             let evalue = minimax(possibleMoves[i], depth - 1, alpha, beta, true, activePlayerColor, inactiveColor, activeColor);
-            //console.log('Countermove: ', possibleMoves[i], evalue[0])
+            console.log('Countermove: ', possibleMoves[i], evalue[0])
             minEval = Math.min(minEval, evalue[0]);
             beta = Math.min(beta, evalue[0]);
             if (beta <= alpha) {
@@ -148,6 +148,7 @@ const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayer
 };
 
 const calcPathEvaluation = (topCells, checkWin) => {
+    //console.log('tc: ', topCells)
     let value = 0;
     let regions = 0;
     for (let j = 0; j < topCells.length; j++) {
@@ -155,26 +156,31 @@ const calcPathEvaluation = (topCells, checkWin) => {
         let checkedCells = [];
         let succes = true;
         let checkingPiece = topCells[j];
+        console.log('Begonnen bij', checkingPiece)
         while (succes === true && checkingPiece !== undefined) {
             let step = false;
             let prevCheckingPiece = checkingPiece;
             for (let i = 0; i < topCells.length; i++) {
                 if (checkingPiece.location.x - 1 === topCells[i].location.x && checkingPiece.location.y === topCells[i].location.y && checkedCells.includes(topCells[i]) === false) {
+                    console.log('Naar links')
                     checkedCells.push(checkingPiece);
                     checkingPiece = topCells[i];
                     step = true;
                     break
                 } else if (checkingPiece.location.y - 1 === topCells[i].location.y && checkingPiece.location.x === topCells[i].location.x && checkedCells.includes(topCells[i]) === false) {
+                    console.log('Naar boven')
                     checkedCells.push(checkingPiece);
                     checkingPiece = topCells[i];
                     step = true;
                     break
                 } else if (checkingPiece.location.x + 1 === topCells[i].location.x && checkingPiece.location.y === topCells[i].location.y && checkedCells.includes(topCells[i]) === false) {
+                    console.log('Naar rechts')
                     checkedCells.push(checkingPiece);
                     checkingPiece = topCells[i];
                     step = true;
                     break
                 } else if (checkingPiece.location.y + 1 === topCells[i].location.y && checkingPiece.location.x === topCells[i].location.x && checkedCells.includes(topCells[i]) === false) {
+                    console.log('Naar onder')
                     checkedCells.push(checkingPiece);
                     checkingPiece = topCells[i];
                     step = true;
@@ -182,15 +188,30 @@ const calcPathEvaluation = (topCells, checkWin) => {
                 };
             };
             if (step === false) {
+                let back = false;
                 for (let i = 0; i < topCells.length; i++) {
-                    if (checkedCells.includes(topCells[i]) && (Math.abs(checkingPiece.location.x - topCells[i].location.x) + Math.abs(checkingPiece.location.y - topCells[i].location.y)) === 1) {
+                    if (checkedCells.includes(topCells[i]) && topCells[i] === prevCheckingPiece && (Math.abs(checkingPiece.location.x - topCells[i].location.x) + Math.abs(checkingPiece.location.y - topCells[i].location.y)) === 1) {
                         if (checkedCells.includes(checkingPiece) === false) {
                             checkedCells.push(checkingPiece);
                         };
                         let j = topCells.indexOf(checkingPiece);
                         checkingPiece = topCells[i];
                         topCells.splice(j, 1);
+                        back = true;
                         break
+                    };
+                };
+                if (back === false) {
+                    for (let i = 0; i < topCells.length; i++) {
+                        if (checkedCells.includes(topCells[i]) && (Math.abs(checkingPiece.location.x - topCells[i].location.x) + Math.abs(checkingPiece.location.y - topCells[i].location.y)) === 1) {
+                            if (checkedCells.includes(checkingPiece) === false) {
+                                checkedCells.push(checkingPiece);
+                            };
+                            let j = topCells.indexOf(checkingPiece);
+                            checkingPiece = topCells[i];
+                            topCells.splice(j, 1);
+                            break
+                        };
                     };
                 };
                 if (prevCheckingPiece === checkingPiece) {
@@ -213,6 +234,7 @@ const calcPathEvaluation = (topCells, checkWin) => {
         });
         let xDiff = xMax - xMin + 1;
         let yDiff = yMax - yMin + 1;
+        console.log('Differences: ', xDiff, yDiff, checkedCells)
         if ((xDiff === 5 || yDiff === 5) && checkWin) {
             return true
         } else if (xDiff === 5 || yDiff === 5) {
@@ -275,10 +297,12 @@ const pcalcEvaluation = (gridArray, color, checkWin) => {
     };
 };
 
-const calcEvaluation = (gridArray, color, checkWin) => {
-    let topCellsWhite = [];
+const calcEvaluation = async(gridArray, color, checkWin) => {
     let topCellsBlack = [];
-    gridArray.forEach(cell => {
+    let topCellsWhite = [];
+    let i = 0;
+    for (i; i < gridArray.length; i++) {
+        let cell = gridArray[i];
         let top = cell[cell.length - 1];
         if (top !== undefined) {
             if (top.color === '#f8dfa1') {
@@ -287,7 +311,8 @@ const calcEvaluation = (gridArray, color, checkWin) => {
                 topCellsBlack.push(top)
             };
         };
-    });
+    };
+    console.log('topcells black: ', topCellsBlack)
     if (checkWin) {
         let winWhite = calcPathEvaluation(topCellsWhite, true);
         let winBlack = calcPathEvaluation(topCellsBlack, true);
@@ -299,7 +324,7 @@ const calcEvaluation = (gridArray, color, checkWin) => {
         let stackEvalBlackValue = calcStackEvaluation(gridArray, '#55342b');
         let pathEvalWhiteValue = calcPathEvaluation(topCellsWhite, false);
         let pathEvalBlackValue = calcPathEvaluation(topCellsBlack, false);
-
+        //console.log('White: ', stackEvalWhiteValue, pathEvalWhiteValue, 'Black: ', stackEvalBlackValue, pathEvalBlackValue)
         let netEvalWhite = stackEvalWhiteValue * pathEvalWhiteValue;
         let netEvalBlack = stackEvalBlackValue * pathEvalBlackValue;
 
