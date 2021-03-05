@@ -1,8 +1,8 @@
 //AI functie
-export const main = async(oldGrid, activePlayer, inactivePlayer) => {
+export const main = async(oldGrid, activePlayer, inactivePlayer, maxHeight) => {
     console.time('Time')
     let gridArray = toArray(oldGrid);
-    let newArrayGrid = minimax(gridArray, 5, -Infinity, Infinity, true, activePlayer, activePlayer, inactivePlayer)
+    let newArrayGrid = minimax(gridArray, 6, -Infinity, Infinity, true, activePlayer, activePlayer, inactivePlayer, maxHeight);
     console.log('Vo: ', newArrayGrid)
     //calcEvaluation(gridArray, activePlayer, false)
     // let possibleMoves = detPossibleMoves(gridArray);
@@ -102,19 +102,47 @@ const detPossibleMoves = (grid, color) => {
         if (cell[0] === undefined) {
             let newArray = placePiece(grid, i, color, 'road')
             possibleMoves.push(newArray)
+        } else if (cell[cell.length - 1].color === color) {
+            for (let j = 0; j < cell.length; j++) {
+                //left
+                if (i % 5 !== 0 && i - 1 >= 0 && grid[i - 1][0] === undefined) {
+                    let newArray = placePiece(grid, i - 1, color, 'road');
+                    newArray[i] = [];
+                    possibleMoves.push(newArray)
+                };
+                //up
+                if (i - 5 >= 0 && grid[i - 5][0] === undefined) {
+                    let newArray = placePiece(grid, i - 5, color, 'road');
+                    newArray[i] = [];
+                    possibleMoves.push(newArray)
+                };
+                //right
+                if ((i + 1) % 5 !== 0 && i + 1 < 25 && grid[i + 1][0] === undefined) {
+                    let newArray = placePiece(grid, i + 1, color, 'road');
+                    newArray[i] = [];
+                    possibleMoves.push(newArray)
+                };
+                //down
+                if (i + 5 < 25 && grid[i + 5][0] === undefined) {
+                    let newArray = placePiece(grid, i + 5, color, 'road');
+                    newArray[i] = [];
+                    possibleMoves.push(newArray)
+                };
+            };
         };
     });
     return possibleMoves
 };
 
-const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayerColor, activeColor, inactiveColor) => {
+const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayerColor, activeColor, inactiveColor, maxHeight) => {
     let win = calcEvaluation(currentGrid, activePlayerColor, true);
     if (depth === 0 || win === true) {
         let evaluation = calcEvaluation(currentGrid, activePlayerColor, false) * (depth + 1);
         return [evaluation]
     };
 
-    let possibleMoves = detPossibleMoves(currentGrid, activeColor);
+    let possibleMoves = detPossibleMoves(currentGrid, activeColor, maxHeight);
+    //console.log('pm: ', possibleMoves)
     if (possibleMoves.length === 0) {
         let evaluation = calcEvaluation(currentGrid, activePlayerColor, false) * (depth + 1);
         return [evaluation]

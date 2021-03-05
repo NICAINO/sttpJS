@@ -5,7 +5,7 @@
     import Pyramid  from '../../components/pieces/Pyramid'
     import { main } from '../ai/main'
     
-    export let evals = [];
+    //export let evals = [];
     let round = 0;
     let grid_value = [];
     let log_value = [];
@@ -24,9 +24,9 @@
 
     let direction = '';
 
-    export let winner = undefined;
+    //export let winner = undefined;
     export let movingStack = []
-    export const maxHeigth = 1
+    export const maxHeigth = 1;
     export let players = {
         player1: {
             name:"Gonnoe Garfield",
@@ -439,11 +439,11 @@
         } else {
             notCurrentPlayerColor = '#f8dfa1'
         }
-        let newGrid = await main(oldGrid, currentPlayer.color, notCurrentPlayerColor)
+        let newGrid = await main(oldGrid, currentPlayer.color, notCurrentPlayerColor, maxHeigth)
         //console.log(evals)
         $grid = newGrid
         endTurn()
-    }
+    };
 
 </script>
 
