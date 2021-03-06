@@ -26,7 +26,7 @@
 
     //export let winner = undefined;
     export let movingStack = []
-    export const maxHeigth = 1;
+    export const maxHeigth = 2;
     export let players = {
         player1: {
             name:"Gonnoe Garfield",
@@ -441,8 +441,8 @@
         }
         let newGrid = await main(oldGrid, currentPlayer.color, notCurrentPlayerColor, maxHeigth)
         //console.log(evals)
-        $grid = newGrid
-        endTurn()
+        //$grid = newGrid
+        //endTurn()
     };
 
 </script>
