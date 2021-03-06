@@ -82,29 +82,31 @@ const calcXY = (i) => {
     return [x, y]
 }
 
-const movePiece = (gridArray, location, piece) => {
-    let xy = calcXY(location);
-    let array = gridArray;
-    array[location].push({
-        type: piece.type,
-        color: piece.color,
-        location: {
-            x: xy[0],
-            y: xy[1],
-            z : gridArray[location].length
-        },
-        'road': piece['road'],
-        "wall": piece['wall'],
-        "pyramid": piece['pyramid'],
-        "win": piece['win']
-    });
-    return array
+const movePiece = (gridArray, location, piece, maxHeight) => {
+    if (gridArray[location].length === maxHeight) {
+        return false
+    } else {
+        let xy = calcXY(location);
+        gridArray[location].push({
+            type: piece.type,
+            color: piece.color,
+            location: {
+                x: xy[0],
+                y: xy[1],
+                z : gridArray[location].length
+            },
+            'road': piece['road'],
+            "wall": piece['wall'],
+            "pyramid": piece['pyramid'],
+            "win": piece['win']
+        });
+        return gridArray
+    }
 };
 
 const placePiece = (gridArray, location, color, type) => {
     let xy = calcXY(location)
-    let array = [ ...gridArray]
-    array[location].push({
+    gridArray[location].push({
         type: type.type,
         color: color,
         location: {
@@ -116,137 +118,240 @@ const placePiece = (gridArray, location, color, type) => {
         "wall": type['wall'],
         "pyramid": type['pyramid'],
         "win": type['win']
-    })
-    return array
-}
+    });
+    return gridArray
+};
 
-const detMoves = (grid, movingStack, newPosition, possibleMoves, statement, startingPosition, maxHeight) => {
-    //console.log('Grid:', grid, 'movingStack', movingStack)
-    if (movingStack.length === 0) {
-        possibleMoves.push(grid)
-        return possibleMoves
-    } else {
-        let i;
-        if (statement) {
-            i = 0;
-        } else {
-            i = 1;
-        }
-        for (i; i <= movingStack.length; i++) {
-            let newMovingStack = movingStack.slice();
-            let newGrid = grid.slice();
-            newGrid[newPosition] = [];
-            let j = 0;
-            while (j !== i) {
-                newGrid = movePiece(newGrid, newPosition, newMovingStack[0]);
+const detMovesLeft = (grid, movingStack, newPosition, possibleMoves, startingPosition, maxHeight, placeMinimum) => {
+    for (let i = movingStack.length; i >= placeMinimum; i--) {
+        let newMovingStack = movingStack.slice();
+        let newGrid = grid.slice();
+        newGrid[newPosition] = [...newGrid[newPosition]];
+        let j = 0;
+        while (j !== i) {
+            newGrid = movePiece(newGrid, newPosition, newMovingStack[0], maxHeight);
+            if (newGrid !== false) {
                 newMovingStack.splice(0, 1)
+                j = i;
+            } else {
                 j++
             };
-            if ((newPosition === startingPosition || (newPosition + 1) % 5 !== 0) && grid[newPosition-1].length < maxHeight) {
-                if (grid[newPosition-1].length > 0) {
-                    let type = grid[newPosition-1][grid[newPosition-1].length - 1].type;
-                    let piece = movingStack[0]
-                    if (piece[type]) {
-                        possibleMoves = detMoves(newGrid, newMovingStack, newPosition - 1, possibleMoves, false, startingPosition, maxHeight)
-                    }
-                } else {
-                    possibleMoves = detMoves(newGrid, newMovingStack, newPosition - 1, possibleMoves, false, startingPosition, maxHeight)
-                };
-            };
         };
+        if (newMovingStack.length === 0) {
+            possibleMoves.push(newGrid)
+        } else if (newPosition % 5 !== 0 && newGrid[newPosition - 1].length < maxHeight) {
+            if (newGrid[newPosition - 1].length !== 0) {
+                 let type = newGrid[newPosition - 1][newGrid[newPosition - 1].length - 1].type;
+                 let piece = newMovingStack[0];
+                 if (piece[type]) {
+                    possibleMoves = detMovesLeft(newGrid, newMovingStack, newPosition - 1, possibleMoves, startingPosition, maxHeight, 1);
+                 } else break
+            } else {
+                possibleMoves = detMovesLeft(newGrid, newMovingStack, newPosition - 1, possibleMoves, startingPosition, maxHeight, 1);
+            };
+        } else break
     };
     return possibleMoves
 };
 
-function callManyTimes(maxIndices, func) {
-    doCallManyTimes(maxIndices, func, [], 0);
-}
+const detMovesUp = (grid, movingStack, newPosition, possibleMoves, startingPosition, maxHeight, placeMinimum) => {
+    for (let i = movingStack.length; i >= placeMinimum; i--) {
+        let newMovingStack = movingStack.slice();
+        let newGrid = grid.slice();
+        newGrid[newPosition] = [...newGrid[newPosition]];
+        let j = 0;
+        while (j !== i) {
+            newGrid = movePiece(newGrid, newPosition, newMovingStack[0], maxHeight);
+            if (newGrid !== false) {
+                newMovingStack.splice(0, 1)
+                j = i;
+            } else {
+                j++
+            };
+        };
+        if (newMovingStack.length === 0) {
+            possibleMoves.push(newGrid)
+        } else if (newPosition >= 0 && newGrid[newPosition - 5].length < maxHeight) {
+            if (newGrid[newPosition - 5].length !== 0) {
+                 let type = newGrid[newPosition - 5][newGrid[newPosition - 5].length - 1].type;
+                 let piece = newMovingStack[0];
+                 if (piece[type]) {
+                    possibleMoves = detMovesUp(newGrid, newMovingStack, newPosition - 5, possibleMoves, startingPosition, maxHeight, 1);
+                 } else break
+            } else {
+                possibleMoves = detMovesUp(newGrid, newMovingStack, newPosition - 5, possibleMoves, startingPosition, maxHeight, 1);
+            };
+        } else break
+    };
+    return possibleMoves
+};
 
-// call zo callManyTimes([2,3,5], doSomething());
+const detMovesRight = (grid, movingStack, newPosition, possibleMoves, startingPosition, maxHeight, placeMinimum) => {
+    for (let i = movingStack.length; i >= placeMinimum; i--) {
+        let newMovingStack = movingStack.slice();
+        let newGrid = grid.slice();
+        newGrid[newPosition] = [...newGrid[newPosition]];
+        let j = 0;
+        while (j !== i) {
+            newGrid = movePiece(newGrid, newPosition, newMovingStack[0], maxHeight);
+            if (newGrid !== false) {
+                newMovingStack.splice(0, 1)
+                j = i;
+            } else {
+                j++
+            };
+        };
+        if (newMovingStack.length === 0) {
+            possibleMoves.push(newGrid)
+        } else if ((newPosition + 1) % 5 !== 0 && newGrid[newPosition + 1].length < maxHeight) {
+            if (newGrid[newPosition + 1].length !== 0) {
+                 let type = newGrid[newPosition + 1][newGrid[newPosition + 1].length - 1].type;
+                 let piece = newMovingStack[0];
+                 if (piece[type]) {
+                    possibleMoves = detMovesRight(newGrid, newMovingStack, newPosition + 1, possibleMoves, startingPosition, maxHeight, 1);
+                 } else break
+            } else {
+                possibleMoves = detMovesRight(newGrid, newMovingStack, newPosition + 1, possibleMoves, startingPosition, maxHeight, 1);
+            };
+        } else break
+    };
+    return possibleMoves
+};
 
-function doCallManyTimes(maxIndices, func, args, index) {
-    if (maxIndices.length == 0) {
-        func(args);
-    } else {
-        var rest = maxIndices.slice(1);
-        for (args[index] = 0; args[index] < maxIndices[0]; ++args[index]) {
-            doCallManyTimes(rest, func, args, index + 1);
-        }
-    }
-}
+const detMovesDown = (grid, movingStack, newPosition, possibleMoves, startingPosition, maxHeight, placeMinimum) => {
+    for (let i = movingStack.length; i >= placeMinimum; i--) {
+        let newMovingStack = movingStack.slice();
+        let newGrid = grid.slice();
+        newGrid[newPosition] = [...newGrid[newPosition]];
+        let j = 0;
+        while (j !== i) {
+            newGrid = movePiece(newGrid, newPosition, newMovingStack[0], maxHeight);
+            if (newGrid !== false) {
+                newMovingStack.splice(0, 1)
+                j = i;
+            } else {
+                j++
+            };
+        };
+        if (newMovingStack.length === 0) {
+            possibleMoves.push(newGrid)
+        } else if (newPosition < 25 && newGrid[newPosition + 5].length < maxHeight) {
+            if (newGrid[newPosition + 5].length !== 0) {
+                 let type = newGrid[newPosition + 5][newGrid[newPosition + 5].length - 1].type;
+                 let piece = newMovingStack[0];
+                 if (piece[type]) {
+                    possibleMoves = detMovesDown(newGrid, newMovingStack, newPosition + 5, possibleMoves, startingPosition, maxHeight, 1);
+                 } else break
+            } else {
+                possibleMoves = detMovesDown(newGrid, newMovingStack, newPosition + 5, possibleMoves, startingPosition, maxHeight, 1);
+            };
+        } else break
+    };
+    return possibleMoves
+};
+
+// function callManyTimes(maxIndices, func) {
+//     doCallManyTimes(maxIndices, func, [], 0);
+// }
+
+// // call zo callManyTimes([2,3,5], doSomething());
+
+// function doCallManyTimes(maxIndices, func, args, index) {
+//     if (maxIndices.length == 0) {
+//         func(args);
+//     } else {
+//         var rest = maxIndices.slice(1);
+//         for (args[index] = 0; args[index] < maxIndices[0]; ++args[index]) {
+//             doCallManyTimes(rest, func, args, index + 1);
+//         }
+//     }
+// }
 
 const vo = (grid, color, maxHeight) => {
     let possibleMoves = [];
     grid.forEach((cell, i) => {
         if (cell[cell.length - 1] === undefined) {
-            //troep        
+            // let newGrid = grid.slice();
+            // let newArray = placePiece(newGrid, i, color, 'road')
+            // possibleMoves.push(newArray)  
+            // newArray = [];   
         } else if (cell[cell.length - 1].color === color) {
-            let movingStack = grid[i].slice();
-            console.log('Detmoves: ', detMoves(grid, movingStack, i, [], true, i, maxHeight))
-            // for (let j = 0; j < movingStack.length; j++) {
-            //     let newArray = grid.slice();
-            //     newArray[i] = [];
-            //     for (let p = 0; p < j + 1; p++) {
-            //         newArray = movePiece(newArray, i, movingStack[p])
-            //         possibleMoves.push(newArray)
-            //     };
-                // if (j !== movingStack.length) {
-                //     for(let q = 0; q < (movingStack.length-j); q++) {
-                //         if (q !== movingStack.length - j) {
-                            
-                //         }
-                //     }
-                // }; 
-        //};
+            let newGrid = grid.slice();
+            let movingStack = newGrid[i].splice(0);
+            let movesLeft = detMovesLeft(newGrid, movingStack, i, [], i, maxHeight, 0);
+            movesLeft.forEach(move => {
+                if (possibleMoves.includes(move) === false) {
+                    possibleMoves.push(move)
+                };
+            });
+            let movesUp = detMovesUp(newGrid, movingStack, i, [], i, maxHeight, 0);
+            movesUp.forEach(move => {
+                console.log(possibleMoves, possibleMoves.includes(move))
+                if (possibleMoves.includes(move) === false) {
+                    possibleMoves.push(move)
+                };
+            });
+            let movesRight = detMovesRight(newGrid, movingStack, i, [], i, maxHeight, 0);
+            movesRight.forEach(move => {
+                if (possibleMoves.includes(move) === false) {
+                    possibleMoves.push(move)
+                };
+            });
+            let movesDown = detMovesDown(newGrid, movingStack, i, [], i, maxHeight, 0);
+            movesDown.forEach(move => {
+                if (possibleMoves.includes(move) === false) {
+                    possibleMoves.push(move)
+                };
+            });
         };
     });
-    console.log('pm: ', possibleMoves)
+    console.log('pm: ', possibleMoves, grid)
 }
 
-const detPossibleMoves = (grid, color) => {
-    let possibleMoves = [];
-    grid.forEach((cell, i) => {
-        if (cell[0] === undefined) {
-            let newArray = placePiece(grid, i, color, 'road')
-            possibleMoves.push(newArray)
-        } else if (cell[cell.length - 1].color === color) {
-            let movingStack = grid[i];
-            for (let j = 0; j < movingStack.length; j++) {
-                //left
-                if (i % 5 !== 0 && i - 1 >= 0 && grid[i - 1][0] === undefined) {
-                    let newArray = placePiece(grid, i - 1, color, 'road');
-                    newArray [i] = [];
-                    possibleMoves.push(newArray)
-                };
-            };
-            for (let j = 0; j < movingStack.length; j++) {
-                //up
-                if (i - 5 >= 0 && grid[i - 5][0] === undefined) {
-                    let newArray = placePiece(grid, i - 5, color, 'road');
-                    newArray[i] = [];
-                    possibleMoves.push(newArray)
-                };
-            };
-            for (let j = 0; j < movingStack.length; j++) {
-                //right
-                if ((i + 1) % 5 !== 0 && i + 1 < 25 && grid[i + 1][0] === undefined) {
-                    let newArray = placePiece(grid, i + 1, color, 'road');
-                    newArray[i] = [];
-                    possibleMoves.push(newArray)
-                };
-            };
-            for (let j = 0; j < movingStack.length; j++) {
-                //down
-                if (i + 5 < 25 && grid[i + 5][0] === undefined) {
-                    let newArray = placePiece(grid, i + 5, color, 'road');
-                    newArray[i] = [];
-                    possibleMoves.push(newArray)
-                };
-            };
-        };
-    });
-    return possibleMoves
-};
+// const detPossibleMoves = (grid, color) => {
+//     let possibleMoves = [];
+//     grid.forEach((cell, i) => {
+//         if (cell[0] === undefined) {
+//             let newArray = placePiece(grid, i, color, 'road')
+//             possibleMoves.push(newArray)
+//         } else if (cell[cell.length - 1].color === color) {
+//             let movingStack = grid[i];
+//             for (let j = 0; j < movingStack.length; j++) {
+//                 //left
+//                 if (i % 5 !== 0 && i - 1 >= 0 && grid[i - 1][0] === undefined) {
+//                     let newArray = placePiece(grid, i - 1, color, 'road');
+//                     newArray [i] = [];
+//                     possibleMoves.push(newArray)
+//                 };
+//             };
+//             for (let j = 0; j < movingStack.length; j++) {
+//                 //up
+//                 if (i - 5 >= 0 && grid[i - 5][0] === undefined) {
+//                     let newArray = placePiece(grid, i - 5, color, 'road');
+//                     newArray[i] = [];
+//                     possibleMoves.push(newArray)
+//                 };
+//             };
+//             for (let j = 0; j < movingStack.length; j++) {
+//                 //right
+//                 if ((i + 1) % 5 !== 0 && i + 1 < 25 && grid[i + 1][0] === undefined) {
+//                     let newArray = placePiece(grid, i + 1, color, 'road');
+//                     newArray[i] = [];
+//                     possibleMoves.push(newArray)
+//                 };
+//             };
+//             for (let j = 0; j < movingStack.length; j++) {
+//                 //down
+//                 if (i + 5 < 25 && grid[i + 5][0] === undefined) {
+//                     let newArray = placePiece(grid, i + 5, color, 'road');
+//                     newArray[i] = [];
+//                     possibleMoves.push(newArray)
+//                 };
+//             };
+//         };
+//     });
+//     return possibleMoves
+// };
 
 const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayerColor, activeColor, inactiveColor, maxHeight) => {
     let win = calcEvaluation(currentGrid, activePlayerColor, true);
