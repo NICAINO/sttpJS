@@ -9,7 +9,7 @@ export const main = async(oldGrid, activePlayer, inactivePlayer, maxHeight) => {
     let gridArray = toArray(oldGrid);
     //let newArrayGrid = minimax(gridArray, 3, -Infinity, Infinity, true, activePlayer, activePlayer, inactivePlayer, maxHeight);
     //console.log('Vo: ', newArrayGrid)
-    vo(gridArray, activePlayer)
+    vo(gridArray, activePlayer, maxHeight)
     // let possibleMoves = detPossibleMoves(gridArray);
     // let move = detMove(possibleMoves, gridArray, currentPlayer);
     //     let newArrayGrid = move.newGrid;
@@ -120,34 +120,43 @@ const placePiece = (gridArray, location, color, type) => {
     return array
 }
 
-const detMoves = (grid, movingStack, amount, newPosition, possibleMoves, statement) => {
-    console.log('movingstack', movingStack)
+const detMoves = (grid, movingStack, newPosition, possibleMoves, statement, startingPosition, maxHeight) => {
+    //console.log('Grid:', grid, 'movingStack', movingStack)
     if (movingStack.length === 0) {
         possibleMoves.push(grid)
         return possibleMoves
     } else {
-        console.log('We gaan dieper!', newPosition)
         let i;
         if (statement) {
             i = 0;
         } else {
             i = 1;
         }
-        for (i; i < amount; i++) {
+        for (i; i <= movingStack.length; i++) {
+            let newMovingStack = movingStack.slice();
             let newGrid = grid.slice();
             newGrid[newPosition] = [];
             let j = 0;
             while (j !== i) {
-                newGrid = movePiece(newGrid, newPosition, movingStack[0])
-                movingStack.splice(0, 1)
+                newGrid = movePiece(newGrid, newPosition, newMovingStack[0]);
+                newMovingStack.splice(0, 1)
                 j++
             };
-            console.log('grid', newGrid)
-            possibleMoves = detMoves(newGrid, movingStack, movingStack.length, newPosition - 1, possibleMoves, false)
-        }
-    }
+            if ((newPosition === startingPosition || (newPosition + 1) % 5 !== 0) && grid[newPosition-1].length < maxHeight) {
+                if (grid[newPosition-1].length > 0) {
+                    let type = grid[newPosition-1][grid[newPosition-1].length - 1].type;
+                    let piece = movingStack[0]
+                    if (piece[type]) {
+                        possibleMoves = detMoves(newGrid, newMovingStack, newPosition - 1, possibleMoves, false, startingPosition, maxHeight)
+                    }
+                } else {
+                    possibleMoves = detMoves(newGrid, newMovingStack, newPosition - 1, possibleMoves, false, startingPosition, maxHeight)
+                };
+            };
+        };
+    };
     return possibleMoves
-}
+};
 
 function callManyTimes(maxIndices, func) {
     doCallManyTimes(maxIndices, func, [], 0);
@@ -166,14 +175,14 @@ function doCallManyTimes(maxIndices, func, args, index) {
     }
 }
 
-const vo = (grid, color) => {
+const vo = (grid, color, maxHeight) => {
     let possibleMoves = [];
     grid.forEach((cell, i) => {
         if (cell[cell.length - 1] === undefined) {
             //troep        
         } else if (cell[cell.length - 1].color === color) {
             let movingStack = grid[i].slice();
-            console.log('Detmoves: ', detMoves(grid, movingStack, movingStack.length, i, [], true))
+            console.log('Detmoves: ', detMoves(grid, movingStack, i, [], true, i, maxHeight))
             // for (let j = 0; j < movingStack.length; j++) {
             //     let newArray = grid.slice();
             //     newArray[i] = [];

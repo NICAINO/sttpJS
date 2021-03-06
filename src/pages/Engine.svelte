@@ -26,7 +26,7 @@
 
     //export let winner = undefined;
     export let movingStack = []
-    export const maxHeigth = 2;
+    export const maxHeigth = 4;
     export let players = {
         player1: {
             name:"Gonnoe Garfield",
