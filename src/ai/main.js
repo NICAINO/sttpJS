@@ -7,16 +7,15 @@ import Pyramid  from '../../components/pieces/Pyramid';
 export const main = async(oldGrid, activePlayer, inactivePlayer, maxHeight) => {
     console.time('Time')
     let gridArray = toArray(oldGrid);
-    let newArrayGrid = minimax(gridArray, 2, -Infinity, Infinity, true, activePlayer, activePlayer, inactivePlayer, maxHeight);
+    let newArrayGrid = minimax(gridArray, 4, -Infinity, Infinity, true, activePlayer, activePlayer, inactivePlayer, maxHeight);
     console.log('Vo: ', newArrayGrid)
-    //detPossibleMoves(gridArray, activePlayer, maxHeight)
     //     let newArrayGrid = move.newGrid;
     //     let evalWhite = move.evalWhite;
     //     let evalBlack = move.evalBlack;
     let newGrid = toGrid(newArrayGrid[1]);
     console.timeEnd('Time')
     return newGrid
-}
+};
 
 const toArray = (grid) => {
     let ans = [];
@@ -334,28 +333,29 @@ const calcPathEvaluation = (topCells, checkWin) => {
             let step = false;
             let prevCheckingPiece = checkingPiece;
             for (let i = 0; i < topCells.length; i++) {
-                if (checkingPiece.location.x - 1 === topCells[i].location.x && checkingPiece.location.y === topCells[i].location.y && checkedCells.includes(topCells[i]) === false) {
+                let piece = topCells[i];
+                if (checkingPiece.location.x - 1 === piece.location.x && checkingPiece.location.y === piece.location.y && checkedCells.includes(piece) === false && piece['win'] === true) {
                     //console.log('Naar links')
                     checkedCells.push(checkingPiece);
-                    checkingPiece = topCells[i];
+                    checkingPiece = piece;
                     step = true;
                     break
-                } else if (checkingPiece.location.y - 1 === topCells[i].location.y && checkingPiece.location.x === topCells[i].location.x && checkedCells.includes(topCells[i]) === false) {
+                } else if (checkingPiece.location.y - 1 === piece.location.y && checkingPiece.location.x === piece.location.x && checkedCells.includes(piece) === false && piece['win'] === true) {
                     //console.log('Naar boven')
                     checkedCells.push(checkingPiece);
-                    checkingPiece = topCells[i];
+                    checkingPiece = piece;
                     step = true;
                     break
-                } else if (checkingPiece.location.x + 1 === topCells[i].location.x && checkingPiece.location.y === topCells[i].location.y && checkedCells.includes(topCells[i]) === false) {
+                } else if (checkingPiece.location.x + 1 === piece.location.x && checkingPiece.location.y === piece.location.y && checkedCells.includes(piece) === false && piece['win'] === true) {
                     //console.log('Naar rechts')
                     checkedCells.push(checkingPiece);
-                    checkingPiece = topCells[i];
+                    checkingPiece = piece;
                     step = true;
                     break
-                } else if (checkingPiece.location.y + 1 === topCells[i].location.y && checkingPiece.location.x === topCells[i].location.x && checkedCells.includes(topCells[i]) === false) {
+                } else if (checkingPiece.location.y + 1 === piece.location.y && checkingPiece.location.x === piece.location.x && checkedCells.includes(piece) === false && piece['win'] === true) {
                     //console.log('Naar onder')
                     checkedCells.push(checkingPiece);
-                    checkingPiece = topCells[i];
+                    checkingPiece = piece;
                     step = true;
                     break
                 };
@@ -469,7 +469,7 @@ const calcEvaluation = (gridArray, color, checkWin) => {
         } else {
             netEval = netEvalBlack - netEvalWhite
         };
-        //console.log('The netEval for', color, 'is', netEval)
+        //console.log('The netEval for', gridArray, 'is', netEval)
         return netEval
     };
 };
