@@ -441,8 +441,8 @@
         }
         let newGrid = await main(oldGrid, currentPlayer.color, notCurrentPlayerColor, maxHeigth)
         //console.log(evals)
-        //$grid = newGrid
-        //endTurn()
+        $grid = newGrid
+        endTurn()
     };
 
 </script>
