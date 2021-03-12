@@ -3,17 +3,17 @@ import Wall  from '../../components/pieces/Wall';
 import Road  from '../../components/pieces/Road';
 import Pyramid  from '../../components/pieces/Pyramid';
 
+let maxHeight = 5;
 
-export const main = async(oldGrid, activePlayer, inactivePlayer, maxHeight) => {
-    console.time('Time')
+export const main = async(oldGrid, activePlayer, inactivePlayer) => {
+    console.time('Time');
     let gridArray = toArray(oldGrid);
-    let newArrayGrid = minimax(gridArray, 4, -Infinity, Infinity, true, activePlayer, activePlayer, inactivePlayer, maxHeight);
+    let newArrayGrid = minimax(gridArray, 3, -Infinity, Infinity, true, activePlayer, activePlayer, inactivePlayer);
     console.log('Vo: ', newArrayGrid)
-    //     let newArrayGrid = move.newGrid;
+    //calcEvaluation(gridArray, activePlayer, false)
     //     let evalWhite = move.evalWhite;
-    //     let evalBlack = move.evalBlack;
     let newGrid = toGrid(newArrayGrid[1]);
-    console.timeEnd('Time')
+    console.timeEnd('Time');
     return newGrid
 };
 
@@ -45,6 +45,19 @@ const toGrid = (newGrid) => {
     })
     return ansGrid
 }
+
+const checkPyramid = (newGrid) => {
+    let ans = false;
+    newGrid.forEach(cell => {
+        let top = cell[cell.length - 1];
+        if (top !== undefined) {
+            if (top.type === 'pyramid') {
+                ans = true;
+            };
+        };
+    });
+    return ans
+};
 
 const calcXY = (i) => {
     const conversion = [
@@ -79,13 +92,13 @@ const calcXY = (i) => {
     return [x, y]
 }
 
-const detMovesLeft = (grid, movingStack, newPosition, possibleMoves, startingPosition, maxHeight, placeMinimum) => {
+const detMovesLeft = (grid, movingStack, newPosition, possibleMoves, startingPosition, placeMinimum) => {
     for (let i = movingStack.length; i >= placeMinimum; i--) {
         let newMovingStack = [...movingStack];
         let newGrid = [...grid];
         let j = 0;
         while (j !== i) {
-            let possibleNewGrid = placePiece(newGrid, newPosition, newMovingStack[0].color, newMovingStack[0], maxHeight);
+            let possibleNewGrid = placePiece(newGrid, newPosition, newMovingStack[0].color, newMovingStack[0]);
             if (possibleNewGrid !== false) {
                 newGrid = possibleNewGrid
                 newMovingStack.splice(0, 1)
@@ -103,23 +116,23 @@ const detMovesLeft = (grid, movingStack, newPosition, possibleMoves, startingPos
                  let type = newGrid[newPosition - 1][newGrid[newPosition - 1].length - 1].type;
                  let piece = newMovingStack[0];
                  if (piece[type]) {
-                    possibleMoves = detMovesLeft(newGrid, newMovingStack, newPosition - 1, possibleMoves, startingPosition, maxHeight, 1);
+                    possibleMoves = detMovesLeft(newGrid, newMovingStack, newPosition - 1, possibleMoves, startingPosition, 1);
                  } else break
             } else {
-                possibleMoves = detMovesLeft(newGrid, newMovingStack, newPosition - 1, possibleMoves, startingPosition, maxHeight, 1);
+                possibleMoves = detMovesLeft(newGrid, newMovingStack, newPosition - 1, possibleMoves, startingPosition, 1);
             };
         } else break
     };
     return possibleMoves
 };
 
-const detMovesUp = (grid, movingStack, newPosition, possibleMoves, startingPosition, maxHeight, placeMinimum) => {
+const detMovesUp = (grid, movingStack, newPosition, possibleMoves, startingPosition, placeMinimum) => {
     for (let i = movingStack.length; i >= placeMinimum; i--) {
         let newMovingStack = [...movingStack];
         let newGrid = [...grid];
         let j = 0;
         while (j !== i) {
-            let possibleNewGrid = placePiece(newGrid, newPosition, newMovingStack[0].color, newMovingStack[0], maxHeight);
+            let possibleNewGrid = placePiece(newGrid, newPosition, newMovingStack[0].color, newMovingStack[0]);
             if (possibleNewGrid !== false) {
                 newGrid = possibleNewGrid;
                 newMovingStack.splice(0, 1)
@@ -137,23 +150,23 @@ const detMovesUp = (grid, movingStack, newPosition, possibleMoves, startingPosit
                  let type = newGrid[newPosition - 5][newGrid[newPosition - 5].length - 1].type;
                  let piece = newMovingStack[0];
                  if (piece[type]) {
-                    possibleMoves = detMovesUp(newGrid, newMovingStack, newPosition - 5, possibleMoves, startingPosition, maxHeight, 1);
+                    possibleMoves = detMovesUp(newGrid, newMovingStack, newPosition - 5, possibleMoves, startingPosition, 1);
                  } else break
             } else {
-                possibleMoves = detMovesUp(newGrid, newMovingStack, newPosition - 5, possibleMoves, startingPosition, maxHeight, 1);
+                possibleMoves = detMovesUp(newGrid, newMovingStack, newPosition - 5, possibleMoves, startingPosition, 1);
             };
         } else break
     };
     return possibleMoves
 };
 
-const detMovesRight = (grid, movingStack, newPosition, possibleMoves, startingPosition, maxHeight, placeMinimum) => {
+const detMovesRight = (grid, movingStack, newPosition, possibleMoves, startingPosition, placeMinimum) => {
     for (let i = movingStack.length; i >= placeMinimum; i--) {
         let newMovingStack = [...movingStack];
         let newGrid = [...grid];
         let j = 0;
         while (j !== i) {
-            let possibleNewGrid = placePiece(newGrid, newPosition, newMovingStack[0].color, newMovingStack[0], maxHeight);
+            let possibleNewGrid = placePiece(newGrid, newPosition, newMovingStack[0].color, newMovingStack[0]);
             if (possibleNewGrid !== false) {
                 newGrid = possibleNewGrid
                 newMovingStack.splice(0, 1)
@@ -171,23 +184,23 @@ const detMovesRight = (grid, movingStack, newPosition, possibleMoves, startingPo
                  let type = newGrid[newPosition + 1][newGrid[newPosition + 1].length - 1].type;
                  let piece = newMovingStack[0];
                  if (piece[type]) {
-                    possibleMoves = detMovesRight(newGrid, newMovingStack, newPosition + 1, possibleMoves, startingPosition, maxHeight, 1);
+                    possibleMoves = detMovesRight(newGrid, newMovingStack, newPosition + 1, possibleMoves, startingPosition, 1);
                  } else break
             } else {
-                possibleMoves = detMovesRight(newGrid, newMovingStack, newPosition + 1, possibleMoves, startingPosition, maxHeight, 1);
+                possibleMoves = detMovesRight(newGrid, newMovingStack, newPosition + 1, possibleMoves, startingPosition, 1);
             };
         } else break
     };
     return possibleMoves
 };
 
-const detMovesDown = (grid, movingStack, newPosition, possibleMoves, startingPosition, maxHeight, placeMinimum) => {
+const detMovesDown = (grid, movingStack, newPosition, possibleMoves, startingPosition, placeMinimum) => {
     for (let i = movingStack.length; i >= placeMinimum; i--) {
         let newMovingStack = [...movingStack];
         let newGrid = [...grid];
         let j = 0;
         while (j !== i) {
-            let possibleNewGrid = placePiece(newGrid, newPosition, newMovingStack[0].color, newMovingStack[0], maxHeight);
+            let possibleNewGrid = placePiece(newGrid, newPosition, newMovingStack[0].color, newMovingStack[0]);
             if (possibleNewGrid !== false) {
                 newGrid = possibleNewGrid
                 newMovingStack.splice(0, 1)
@@ -205,17 +218,17 @@ const detMovesDown = (grid, movingStack, newPosition, possibleMoves, startingPos
                  let type = newGrid[newPosition + 5][newGrid[newPosition + 5].length - 1].type;
                  let piece = newMovingStack[0];
                  if (piece[type]) {
-                    possibleMoves = detMovesDown(newGrid, newMovingStack, newPosition + 5, possibleMoves, startingPosition, maxHeight, 1);
+                    possibleMoves = detMovesDown(newGrid, newMovingStack, newPosition + 5, possibleMoves, startingPosition, 1);
                  } else break
             } else {
-                possibleMoves = detMovesDown(newGrid, newMovingStack, newPosition + 5, possibleMoves, startingPosition, maxHeight, 1);
+                possibleMoves = detMovesDown(newGrid, newMovingStack, newPosition + 5, possibleMoves, startingPosition, 1);
             };
         } else break
     };
     return possibleMoves
 };
 
-const placePiece = (grid, location, color, type, maxHeight) => {
+const placePiece = (grid, location, color, type) => {
     let newGrid = [...grid];
     if (newGrid[location].length === maxHeight) {
         return false 
@@ -240,31 +253,36 @@ const placePiece = (grid, location, color, type, maxHeight) => {
     };
 };
 
-const detPossibleMoves = (grid, color, maxHeight) => {
+const detPossibleMoves = (grid, color) => {
+    //console.log('pieces: ', pieces)
     let possibleMoves = [];
     grid.forEach((cell, i) => {
         if (cell[0] === undefined) {
-            let newArray = placePiece(grid, i, color, Road, maxHeight)
-            if (newArray !== false) {
-                possibleMoves.push(newArray)
-            }
+            let newArrayRoad = placePiece(grid, i, color, Road)
+            if (newArrayRoad !== false) {
+                possibleMoves.push(newArrayRoad)
+            };
+            let newArrayWall = placePiece(grid, i, color, Wall)
+            if (newArrayWall !== false) {
+                possibleMoves.push(newArrayWall)
+            };
         } else if (cell[cell.length - 1].color === color) {
             let newGrid = [...grid];
-            let movingStack = newGrid.splice(i, 1, [])
+            let movingStack = newGrid.splice(i, 1, []);
 
-            let movesLeft = detMovesLeft(newGrid, movingStack[0], i, [], i, maxHeight, 0);
+            let movesLeft = detMovesLeft(newGrid, movingStack[0], i, [], i, 0);
             movesLeft.forEach(move => {
                 possibleMoves.push(move)
             });
-            let movesUp = detMovesUp(newGrid, movingStack[0], i, [], i, maxHeight, 0);
+            let movesUp = detMovesUp(newGrid, movingStack[0], i, [], i, 0);
             movesUp.forEach(move => {
                 possibleMoves.push(move)
             });
-            let movesRight = detMovesRight(newGrid, movingStack[0], i, [], i, maxHeight, 0);
+            let movesRight = detMovesRight(newGrid, movingStack[0], i, [], i, 0);
             movesRight.forEach(move => {
                 possibleMoves.push(move)
             });
-            let movesDown = detMovesDown(newGrid, movingStack[0], i, [], i, maxHeight, 0);
+            let movesDown = detMovesDown(newGrid, movingStack[0], i, [], i, 0);
             movesDown.forEach(move => {
                 possibleMoves.push(move)
             });
@@ -274,17 +292,16 @@ const detPossibleMoves = (grid, color, maxHeight) => {
     return possibleMoves
 };
 
-const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayerColor, activeColor, inactiveColor, maxHeight) => {
+const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayerColor, activeColor, inactiveColor) => {
     let win = calcEvaluation(currentGrid, activePlayerColor, true);
     if (depth === 0 || win === true) {
-        let evaluation = calcEvaluation(currentGrid, activePlayerColor, false) * (depth + 1);
+        let evaluation = calcEvaluation(currentGrid, activePlayerColor, false) * ((depth^2) + 1);
         return [evaluation]
     };
-
-    let possibleMoves = detPossibleMoves(currentGrid, activeColor, maxHeight);
+    let possibleMoves = detPossibleMoves(currentGrid, activeColor);
     //console.log('pm: ', possibleMoves)
     if (possibleMoves.length === 0) {
-        let evaluation = calcEvaluation(currentGrid, activePlayerColor, false) * (depth + 1);
+        let evaluation = calcEvaluation(currentGrid, activePlayerColor, false) * ((depth^2) + 1);
         return [evaluation]
     } else {
         if (maximizingPLayer) {
@@ -320,7 +337,6 @@ const minimax = (currentGrid, depth, alpha, beta, maximizingPLayer, activePlayer
 };
 
 const calcPathEvaluation = (topCells, checkWin) => {
-    //console.log('tc: ', topCells)
     let value = 0;
     let regions = 0;
     for (let j = 0; j < topCells.length; j++) {
@@ -417,7 +433,7 @@ const calcStackEvaluation = (gridArray, color) => {
         if (cell[cell.length - 1] !== undefined) {
             let top = cell[cell.length - 1];
             cell.forEach(piece => {
-                if (piece === top && piece.color === color) {
+                if (piece === top && piece.color === color && piece['win'] === true) {
                     //jouw piece bovenaan
                     value += squareWorth[i]*10
                 } else if (piece !== top && piece.color === color) {
@@ -430,7 +446,6 @@ const calcStackEvaluation = (gridArray, color) => {
             });
         };
     });
-    //console.log('Counted ', counted, 'pieces, worth', value, 'for', color, ' with ', loops, ' comps')
     return value
 };
 
@@ -441,9 +456,9 @@ const calcEvaluation = (gridArray, color, checkWin) => {
         let cell = gridArray[i];
         let top = cell[cell.length - 1];
         if (top !== undefined) {
-            if (top.color === '#f8dfa1') {
+            if (top.color === '#f8dfa1' && top['win'] === true) {
                 topCellsWhite.push(top)
-            } else {
+            } else if (top['win'] === true) {
                 topCellsBlack.push(top)
             };
         };

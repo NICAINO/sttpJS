@@ -4,7 +4,7 @@
     import Road  from '../../components/pieces/Road'
     import Pyramid  from '../../components/pieces/Pyramid'
     import { main } from '../ai/main'
-    
+
     //export let evals = [];
     let round = 0;
     let grid_value = [];
@@ -439,11 +439,16 @@
         } else {
             notCurrentPlayerColor = '#f8dfa1'
         }
-        let newGrid = await main(oldGrid, currentPlayer.color, notCurrentPlayerColor, maxHeigth)
+        let newGrid = await main(oldGrid, currentPlayer.color, notCurrentPlayerColor)
+        //currentPlayer.pieces -= 1;
         //console.log(evals)
-        $grid = newGrid
+        $grid = newGrid;
         endTurn()
     };
+
+    const coreTest = async() => {
+
+    }
 
 </script>
 
@@ -501,6 +506,7 @@
         <button on:click={() => endTurn()}>Einde beurt</button>
         <button on:click={() => undo()}>Undo</button>
         <button on:click={() => callAi(grid_value)}>Lekker testen</button>
+        <button on:click={() => coreTest()}></button>
     </div>
 </body>
 

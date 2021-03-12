@@ -54,5 +54,8 @@
     "blacklist": [
       "/example/modal/basic/4"
     ]
+  },
+  "dependencies": {
+    "microjob": "^0.7.0"
   }
 }
